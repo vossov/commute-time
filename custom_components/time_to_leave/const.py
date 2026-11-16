@@ -12,7 +12,7 @@ NAME = "Time to Leave"
 # Gelijk aan "version" in manifest.json en aan VERSIE bovenin de kaart.
 # Hangt achter de kaart-URL, zodat de browser na een update de nieuwe kaart
 # ophaalt. tests/test_repo.py bewaakt dat de drie niet uiteenlopen.
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 # De meegeleverde Lovelace-kaart, door de integratie zelf geregistreerd.
 KAART_BESTAND = "time-to-leave-card.js"

@@ -33,7 +33,7 @@
  * omdat dit bestand statisch is: Home Assistant meldt de versie van de
  * Python-kant, en een browser kan een oudere kaart uit de cache draaien.
  * Het nummer staat in de console en onder in het bewerkscherm. */
-const VERSIE = '0.1.0';
+const VERSIE = '0.1.1';
 
 const VORMGEVING = [
   { value: 'default', label: 'Standaard (eigen opmaak)' },

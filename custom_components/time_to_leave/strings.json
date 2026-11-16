@@ -13,7 +13,7 @@
         },
         "data_description": {
           "name": "Wordt de naam van het apparaat en het begin van de entiteits-ID's, zoals sensor.naar_werk_reistijd.",
-          "api_key": "Eén sleutel volstaat voor al je routes; bij een tweede route staat hij al ingevuld.",
+          "api_key": "Maak er een aparte sleutel voor en zet daarbij alleen de Routing API en de Search API aan; de domeinwhitelist blijft leeg. Eén sleutel volstaat voor al je routes; bij een tweede route staat hij al ingevuld.",
           "start": "zone.home is het adres dat in Home Assistant is ingesteld. Met person.naam vertrek je vanaf waar die persoon nu is.",
           "via": "Hoogstens drie, één per regel. Bij een route met een stop rekent de vertrektijd terug vanaf de aankomst op de eindbestemming.",
           "destination": "Een adres zo volledig mogelijk, met plaatsnaam."
@@ -53,7 +53,7 @@
           "scan_minutes": "Verversen elke"
         },
         "data_description": {
-          "api_key": "Gratis aan te vragen op developer.tomtom.com.",
+          "api_key": "Gratis aan te vragen op developer.tomtom.com. Alleen de Routing API en de Search API hoeven aan; de domeinwhitelist blijft leeg.",
           "start": "Een adres, een coördinaat, of een entiteit zoals zone.home of person.naam.",
           "via": "Hoogstens drie, één per regel.",
           "destination": "Een adres zo volledig mogelijk, met plaatsnaam.",

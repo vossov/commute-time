@@ -59,11 +59,55 @@ Installeer *Time to Leave* en herstart Home Assistant.
 De kaart hoort bij de integratie en wordt vanzelf geladen. Je hoeft geen
 resources toe te voegen, geen button-card en geen Bubble Card.
 
-### Een TomTom-sleutel
+### Een TomTom-sleutel, met zo min mogelijk rechten
 
-1. Maak een account op [developer.tomtom.com](https://developer.tomtom.com).
-2. Onder *Keys* staat een sleutel klaar. Zorg dat de **Routing API** en de
-   **Search API** erbij aan staan.
+De integratie gebruikt precies twee diensten van TomTom, allebei in de
+klassieke versie (niet de nieuwere Orbis-varianten):
+
+| product | adres | waarvoor |
+|---|---|---|
+| **Routing API** | `api.tomtom.com/routing/1/calculateRoute` | reistijd met verkeer, wegen, files, en de vertrektijd voor een aankomsttijd |
+| **Search API** | `api.tomtom.com/search/2/geocode` | een ingetypt adres opzoeken. Niet nodig voor `zone.home`, een persoon of een coördinaat |
+
+Zo stel je de sleutel in:
+
+1. **Maak een account** op [developer.tomtom.com](https://developer.tomtom.com),
+   in het gratis Freemium-plan.
+2. **Maak een aparte sleutel** voor deze integratie. TomTom raadt zelf aan
+   om per toepassing een eigen sleutel te gebruiken
+   ([best practices](https://docs.tomtom.com/platform/documentation/api-best-practices/api-key-management-best-practices)).
+   Lekt hij uit, dan raakt dat alleen dit.
+3. **Zet alleen de Routing API en de Search API aan**, en de rest uit:
+   kaarten, de losse Traffic API, enzovoort. Het verkeer zit al in de
+   Routing API; de Traffic API (losse files- en doorstroomgegevens) wordt
+   niet gebruikt. Binnen de Search API kan het niet fijner: TomTom beperkt
+   per product, niet per onderdeel.
+4. **Laat de domeinwhitelist leeg.** Die is bedoeld voor een sleutel die in
+   een webpagina staat, en werkt via CORS, een controle die de browser
+   doet. Hier gaat de sleutel van Home Assistant zelf naar TomTom en komt
+   hij nooit in je browser, dus een whitelist beschermt niets. Of TomTom
+   met een whitelist verzoeken zonder browser zou weigeren, is niet
+   nagegaan.
+5. **Voeg geen betaalgegevens toe.** Zonder creditcard kan een uitgelekte
+   sleutel geen rekening opleveren; boven het dagkwotum weigert TomTom, en
+   dat staat dan op de kaart. Dat volgt uit het plan; het is niet zelf
+   uitgeprobeerd.
+
+**Niet nagekeken:** hoe de vinkjes in het portaal precies heten; dat staat
+achter een inlog. Staan er naast elkaar een klassieke en een
+Orbis-versie, kies dan de klassieke. Ontbreekt er een, dan zegt het
+toevoegscherm bij het eerste opzoeken of de eerste route dat TomTom de
+sleutel weigert.
+
+**Waar de sleutel staat:** in de opslag van Home Assistant
+(`.storage/core.config_entries`), onversleuteld, zoals bij elke
+integratie. Hij zit daarmee ook in je back-ups. Hij staat níét in de
+attributen, niet in de kaart en niet in foutmeldingen in het logboek; daar
+zijn tests voor.
+
+**Lekt hij toch uit:** TomTom kan een sleutel vernieuwen (*key rotation*);
+de oude werkt dan nog een tijd door. Zet de nieuwe daarna bij elke route
+onder *Configureren*. Eén sleutel per route is een bekende beperking.
 
 Het gratis plan geeft 2.500 verzoeken per dag, zonder creditcard. Dat staat
 op TomTom's prijspagina; het is niet nagegaan of dat getal per dienst

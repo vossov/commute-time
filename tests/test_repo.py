@@ -62,6 +62,20 @@ def test_de_eerste_ronde_houdt_het_opzetten_niet_tegen():
     assert "first_refresh" not in code
 
 
+def test_de_readme_noemt_precies_de_tomtom_diensten_die_de_code_gebruikt():
+    """Minimale rechten: de README zegt welke producten de sleutel nodig
+    heeft. Gebruikt de code er een bij, dan moet die tabel mee — anders
+    zet iemand netjes alleen de genoemde producten aan en krijgt hij een
+    403 op het nieuwe."""
+    bron = (COMPONENT / "tomtom.py").read_text(encoding="utf-8")
+    in_code = set(re.findall(r'"https://(api\.tomtom\.com/[a-z]+/\d+/[a-zA-Z]+)', bron))
+    readme = (WORTEL / "README.md").read_text(encoding="utf-8")
+    sectie = readme.split("### Een TomTom-sleutel", 1)[1].split("\n## ", 1)[0]
+    in_readme = set(re.findall(r"`(api\.tomtom\.com/[a-z]+/\d+/[a-zA-Z]+)`", sectie))
+    assert in_code, "geen TomTom-adressen gevonden in tomtom.py; is de schrijfwijze veranderd?"
+    assert in_code == in_readme, f"README en code verschillen: {in_code ^ in_readme}"
+
+
 # ── hacs.json ───────────────────────────────────────────────────────
 
 HACS_TOEGESTAAN = {

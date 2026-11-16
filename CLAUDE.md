@@ -146,6 +146,15 @@ de rand dragen de kleur, de tekst blijft `--primary-text-color`.
 | adres | `api.tomtom.com/search/2/geocode/{adres}.json` | documentatie, 16-11-2026 |
 | Waze openen | `waze.com/ul?ll=…&navigate=yes` | developers.google.com/waze/deeplinks, 16-11-2026 |
 
+**Rechten van de sleutel (minimale rechten).** De README zegt de gebruiker
+een aparte sleutel te maken met alleen de Routing API en de Search API
+(klassiek, niet Orbis), zonder domeinwhitelist (die werkt via CORS en de
+sleutel komt nooit in een browser) en zonder betaalgegevens. Wie een
+TomTom-dienst toevoegt, zet hem in die tabel;
+`test_de_readme_noemt_precies_de_tomtom_diensten_die_de_code_gebruikt`
+faalt anders. De namen van de vinkjes in het portaal zijn niet nagekeken
+(achter een inlog).
+
 **Wat níét nagekeken is:**
 
 - **Een echt antwoord.** De fixtures zijn de voorbeelden uit TomTom's

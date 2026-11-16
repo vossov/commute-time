@@ -13,7 +13,7 @@
         },
         "data_description": {
           "name": "Becomes the device name and the start of the entity IDs, such as sensor.to_work_travel_time.",
-          "api_key": "One key covers all your routes; it is filled in for a second route.",
+          "api_key": "Create a separate key and enable only the Routing API and the Search API on it; leave the domain whitelist empty. One key covers all your routes; it is filled in for a second route.",
           "start": "zone.home is the address set in Home Assistant. With person.name you leave from wherever that person is now.",
           "via": "At most three, one per line. With a stop, the departure time is worked back from arriving at the final destination.",
           "destination": "As complete an address as possible, including the town."
@@ -53,7 +53,7 @@
           "scan_minutes": "Refresh every"
         },
         "data_description": {
-          "api_key": "Free at developer.tomtom.com.",
+          "api_key": "Free at developer.tomtom.com. Only the Routing API and the Search API need to be enabled; leave the domain whitelist empty.",
           "start": "An address, a coordinate, or an entity such as zone.home or person.name.",
           "via": "At most three, one per line.",
           "destination": "As complete an address as possible, including the town.",
