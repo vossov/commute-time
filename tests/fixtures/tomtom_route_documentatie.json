@@ -1,0 +1,238 @@
+{
+  "formatVersion": "0.0.12",
+  "routes": [
+    {
+      "summary": {
+        "lengthInMeters": 1147,
+        "travelTimeInSeconds": 161,
+        "trafficDelayInSeconds": 15,
+        "trafficLengthInMeters": 147,
+        "departureTime": "2015-04-02T15:01:57+02:00",
+        "arrivalTime": "2015-04-02T15:04:38+02:00",
+        "noTrafficTravelTimeInSeconds": 120,
+        "historicTrafficTravelTimeInSeconds": 157,
+        "liveTrafficIncidentsTravelTimeInSeconds": 161,
+        "batteryConsumptionInkWh": 0.155,
+        "deviationDistance": 1735,
+        "deviationTime": 127,
+        "deviationPoint": {
+          "latitude": 52.50904,
+          "longitude": 13.42912
+        },
+        "reachableRouteOffsets": [
+          {
+            "chargeMarginInkWh": 0.0,
+            "routeOffsetInMeters": 1147,
+            "point": {
+              "latitude": 52.51565,
+              "longitude": 13.43979
+            },
+            "pointIndex": 50
+          }
+        ]
+      },
+      "routeReassessments": [
+        {
+          "batteryConsumptionInkWh": 0.2,
+          "reachableRouteOffsets": [
+            {
+              "chargeMarginInkWh": 0.0,
+              "routeOffsetInMeters": 1147,
+              "point": {
+                "latitude": 52.51565,
+                "longitude": 13.43979
+              },
+              "pointIndex": 50
+            }
+          ]
+        }
+      ],
+      "legs": [
+        {
+          "summary": {
+            "lengthInMeters": 108,
+            "travelTimeInSeconds": 11,
+            "trafficDelayInSeconds": 0,
+            "trafficLengthInMeters": 0,
+            "departureTime": "2015-04-02T15:01:57+02:00",
+            "arrivalTime": "2015-04-02T15:02:07+02:00",
+            "noTrafficTravelTimeInSeconds": 10,
+            "historicTrafficTravelTimeInSeconds": 11,
+            "liveTrafficIncidentsTravelTimeInSeconds": 11,
+            "batteryConsumptionInkWh": 0.1,
+            "originalWaypointIndexAtEndOfLeg": 0,
+            "userDefinedPauseTimeInSeconds": 1020,
+            "entryPointIndexAtEndOfLeg": 0
+          },
+          "points": [
+            {
+              "latitude": 52.50931,
+              "longitude": 13.42937
+            },
+            {
+              "latitude": 52.50904,
+              "longitude": 13.42912
+            }
+          ],
+          "encodedPolyline": "evn_Iq|}pAt@p@",
+          "encodedPolylinePrecision": 5
+        }
+      ],
+      "progress": [
+        {
+          "pointIndex": 0,
+          "travelTimeInSeconds": 0,
+          "distanceInMeters": 0,
+          "batteryConsumptionInkWh": 0
+        },
+        {
+          "pointIndex": 5,
+          "travelTimeInSeconds": 7,
+          "distanceInMeters": 74,
+          "batteryConsumptionInkWh": 0.002
+        },
+        {
+          "pointIndex": 87,
+          "travelTimeInSeconds": 161,
+          "distanceInMeters": 1147,
+          "batteryConsumptionInkWh": 0.155
+        }
+      ],
+      "sections": [
+        {
+          "startPointIndex": 0,
+          "endPointIndex": 3,
+          "sectionType": "TRAVEL_MODE",
+          "travelMode": "other"
+        },
+        {
+          "startPointIndex": 3,
+          "endPointIndex": 7,
+          "sectionType": "TRAVEL_MODE",
+          "travelMode": "car"
+        },
+        {
+          "startPointIndex": 2,
+          "endPointIndex": 3,
+          "sectionType": "TOLL",
+          "tollPaymentTypes": [
+            "CREDIT_CARD",
+            "DEBIT_CARD"
+          ]
+        },
+        {
+          "startPointIndex": 4,
+          "endPointIndex": 5,
+          "sectionType": "TOLL",
+          "tollPaymentTypes": [
+            "ETC_TRANSPONDER"
+          ]
+        },
+        {
+          "startPointIndex": 2,
+          "endPointIndex": 5,
+          "sectionType": "TOLL_ROAD"
+        },
+        {
+          "startPointIndex": 3,
+          "endPointIndex": 4,
+          "sectionType": "TUNNEL"
+        },
+        {
+          "startPointIndex": 0,
+          "endPointIndex": 1,
+          "sectionType": "PEDESTRIAN"
+        },
+        {
+          "startPointIndex": 3,
+          "endPointIndex": 4,
+          "sectionType": "TRAFFIC",
+          "simpleCategory": "JAM",
+          "effectiveSpeedInKmh": 40,
+          "delayInSeconds": 158,
+          "magnitudeOfDelay": 1,
+          "tec": {
+            "effectCode": 4,
+            "causes": [
+              {
+                "mainCauseCode": 1
+              },
+              {
+                "mainCauseCode": 26,
+                "subCauseCode": 2
+              }
+            ]
+          }
+        },
+        {
+          "startPointIndex": 0,
+          "endPointIndex": 3,
+          "sectionType": "IMPORTANT_ROAD_STRETCH",
+          "importantRoadStretchIndex": 0,
+          "streetName": {
+            "text": "Sample Street"
+          }
+        },
+        {
+          "startPointIndex": 5,
+          "endPointIndex": 6,
+          "sectionType": "IMPORTANT_ROAD_STRETCH",
+          "importantRoadStretchIndex": 0,
+          "streetName": {
+            "text": "Sample Street"
+          }
+        },
+        {
+          "startPointIndex": 6,
+          "endPointIndex": 7,
+          "sectionType": "IMPORTANT_ROAD_STRETCH",
+          "importantRoadStretchIndex": 2,
+          "streetName": {
+            "text": "Another Street"
+          },
+          "roadNumbers": [
+            {
+              "text": "A10"
+            },
+            {
+              "text": "E10"
+            }
+          ]
+        },
+        {
+          "startPointIndex": 8,
+          "endPointIndex": 9,
+          "sectionType": "IMPORTANT_ROAD_STRETCH",
+          "importantRoadStretchIndex": 1,
+          "roadNumbers": [
+            {
+              "text": "A10"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "optimizedWaypoints": [
+    {
+      "providedIndex": 0,
+      "optimizedIndex": 1
+    },
+    {
+      "providedIndex": 1,
+      "optimizedIndex": 0
+    }
+  ],
+  "report": {
+    "effectiveSettings": [
+      {
+        "key": "avoid",
+        "value": "motorways"
+      },
+      {
+        "key": "computeBestOrder",
+        "value": "true"
+      }
+    ]
+  }
+}

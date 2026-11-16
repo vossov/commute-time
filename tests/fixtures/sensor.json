@@ -1,0 +1,78 @@
+{
+  "berekend": {
+    "route": "Naar werk",
+    "bron": "TomTom",
+    "bijgewerkt": "2026-11-17T07:34:00+01:00",
+    "bijgewerkt_hhmm": "07:34",
+    "in_venster": true,
+    "status": "vertrek_om",
+    "venster_van": "06:30",
+    "venster_tot": "09:30",
+    "doel": "2026-11-17T08:30:00+01:00",
+    "doel_hhmm": "08:30",
+    "marge_min": 5,
+    "stops": 0,
+    "stoptijd_min": 0,
+    "vertrek": "2026-11-17T07:52:00+01:00",
+    "vertrek_hhmm": "07:52",
+    "aankomst": "2026-11-17T07:36:41+01:00",
+    "aankomst_hhmm": "07:36",
+    "te_laat_min": null,
+    "reistijd_min": 3,
+    "reistijd_bij_vertrek_min": 3,
+    "normaal_min": 3,
+    "vrij_min": 2,
+    "vertraging_min": 0,
+    "afstand_km": 1.1,
+    "via": [
+      "Sample Street",
+      "A10"
+    ],
+    "files": [
+      {
+        "soort": "file",
+        "weg": null,
+        "vertraging_min": 3,
+        "snelheid_kmh": 40,
+        "ernst": 1
+      }
+    ],
+    "alternatieven": [],
+    "etappes": [],
+    "punten": [
+      {
+        "invoer": "zone.home",
+        "gevonden": "Thuis",
+        "soort": "entiteit"
+      },
+      {
+        "invoer": "Stationsplein 1, Utrecht",
+        "gevonden": "Stationsplein 1, 3511 ED Utrecht",
+        "soort": "adres"
+      }
+    ],
+    "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-time-to-leave",
+    "fout": null
+  },
+  "buiten_venster": {
+    "route": "Naar werk",
+    "bron": "TomTom",
+    "bijgewerkt": "2026-11-17T18:00:00+01:00",
+    "bijgewerkt_hhmm": "18:00",
+    "in_venster": false,
+    "status": "buiten_venster",
+    "volgend_venster": "2026-11-18T06:30:00+01:00",
+    "volgend_venster_tekst": "morgen 06:30"
+  },
+  "fout": {
+    "route": "Naar werk",
+    "bron": "TomTom",
+    "bijgewerkt": "2026-11-17T07:34:00+01:00",
+    "bijgewerkt_hhmm": "07:34",
+    "in_venster": true,
+    "status": "fout",
+    "venster_van": "06:30",
+    "venster_tot": "09:30",
+    "fout": "TomTom weigert de sleutel (403): ongeldig, niet geactiveerd voor deze dienst, of het dagkwotum is op"
+  }
+}

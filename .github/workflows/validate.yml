@@ -1,0 +1,79 @@
+name: Validatie
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+env:
+  KAART: custom_components/time_to_leave/www/time-to-leave-card.js
+
+jobs:
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hacs/action@main
+        with:
+          category: integration
+          ignore: brands
+
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest installeren
+        run: python -m pip install --upgrade pip pytest voluptuous
+      - name: Syntaxcontrole
+        run: python -m compileall -q custom_components/time_to_leave tests
+      - name: Tests
+        run: python -m pytest tests -q
+
+  kaart:
+    name: Kaart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: De kaart tegen wat de sensor publiceert
+        run: node --test tests/kaart.test.mjs
+      # De kaart gaat ongebundeld naar de browser, en oude WebViews op
+      # wandpanelen draaien ver achter. Eén te nieuw stuk syntax is een
+      # parse-fout en dan meldt het element zich nooit aan. Dezelfde
+      # controle als Skywatch, uit de syntaxboom.
+      - name: Chrome 61-grens
+        run: |
+          npm install --no-save --silent acorn@8
+          node tests/floor.mjs "$KAART"
+
+  versies:
+    name: Versies gelijk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: manifest, const en kaart noemen hetzelfde nummer
+        run: |
+          kaart=$(grep -oP "const VERSIE = '\K[^']+" "$KAART")
+          const=$(grep -oP '^VERSION = "\K[^"]+' custom_components/time_to_leave/const.py)
+          manifest=$(grep -oP '"version": "\K[^"]+' custom_components/time_to_leave/manifest.json)
+          echo "kaart=$kaart const=$const manifest=$manifest"
+          if [ "$kaart" != "$const" ] || [ "$kaart" != "$manifest" ]; then
+            echo "::error::VERSIE in de kaart, VERSION in const.py en version in manifest.json verschillen"
+            exit 1
+          fi

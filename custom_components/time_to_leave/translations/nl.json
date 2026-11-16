@@ -1,0 +1,138 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Route toevoegen",
+        "description": "Eén route per keer toevoegen; voor een tweede route voeg je de integratie nog eens toe. Begin en bestemming mogen een adres zijn, een coördinaat (52.09, 5.12) of een entiteit zoals zone.home of person.naam. Een TomTom-sleutel vraag je gratis aan op developer.tomtom.com.",
+        "data": {
+          "name": "Naam van de route",
+          "api_key": "TomTom-sleutel",
+          "start": "Vertrek vanaf",
+          "via": "Tussenstops",
+          "destination": "Bestemming"
+        },
+        "data_description": {
+          "name": "Wordt de naam van het apparaat en het begin van de entiteits-ID's, zoals sensor.naar_werk_reistijd.",
+          "api_key": "Eén sleutel volstaat voor al je routes; bij een tweede route staat hij al ingevuld.",
+          "start": "zone.home is het adres dat in Home Assistant is ingesteld. Met person.naam vertrek je vanaf waar die persoon nu is.",
+          "via": "Hoogstens drie, één per regel. Bij een route met een stop rekent de vertrektijd terug vanaf de aankomst op de eindbestemming.",
+          "destination": "Een adres zo volledig mogelijk, met plaatsnaam."
+        }
+      },
+      "bevestig": {
+        "title": "Kloppen deze adressen?",
+        "description": "TomTom vond:\n\n{punten}\n\nReistijd nu: {reistijd} min.\n\nKlopt een adres niet, breek dan af en begin opnieuw met een preciezer adres (straat, huisnummer en plaats). Wanneer de route in beeld is en hoe laat je ergens wilt zijn, stel je daarna in onder Configureren."
+      }
+    },
+    "error": {
+      "sleutel_leeg": "Vul een TomTom-sleutel in.",
+      "naam_leeg": "Geef de route een naam.",
+      "te_veel_stops": "Hoogstens drie tussenstops.",
+      "adres_niet_gevonden": "TomTom vindt dit adres niet. Voeg de plaatsnaam toe, of gebruik een coördinaat.",
+      "geen_locatie": "Deze entiteit heeft nu geen locatie.",
+      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, niet geactiveerd voor de Routing en Search API, of het dagkwotum is op.",
+      "geen_route": "TomTom vindt geen route over de weg tussen deze punten.",
+      "tomtom_fout": "TomTom gaf geen bruikbaar antwoord. Probeer het over een paar minuten opnieuw."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Route",
+        "description": "Verandert er iets aan de sleutel of de adressen, dan worden die opnieuw bij TomTom opgezocht. Op de volgende pagina staat het rooster per weekdag.",
+        "data": {
+          "api_key": "TomTom-sleutel",
+          "start": "Vertrek vanaf",
+          "via": "Tussenstops",
+          "destination": "Bestemming",
+          "margin_minutes": "Marge",
+          "stop_minutes": "Stoptijd per tussenstop",
+          "travel_mode": "Vervoer",
+          "avoid": "Vermijden",
+          "alternatives": "Andere routes tonen",
+          "scan_minutes": "Verversen elke"
+        },
+        "data_description": {
+          "api_key": "Gratis aan te vragen op developer.tomtom.com.",
+          "start": "Een adres, een coördinaat, of een entiteit zoals zone.home of person.naam.",
+          "via": "Hoogstens drie, één per regel.",
+          "destination": "Een adres zo volledig mogelijk, met plaatsnaam.",
+          "margin_minutes": "Zoveel minuten eerder dan de aankomsttijd wil je er zijn: parkeren, naar binnen lopen. Staat altijd op de kaart.",
+          "stop_minutes": "Hoe lang je bij elke tussenstop stilstaat. TomTom rekent dat niet mee; het vertrek schuift er zoveel door naar voren.",
+          "travel_mode": "Waar TomTom de route voor berekent.",
+          "avoid": "Een voorkeur, geen verbod: TomTom gebruikt ze als er geen andere weg is.",
+          "alternatives": "Hoeveel andere routes er in het detailvenster staan, met hoeveel langer ze duren.",
+          "scan_minutes": "Alleen binnen het venster; daarbuiten wordt niets opgevraagd. Twee verzoeken per keer als er een aankomsttijd is."
+        }
+      },
+      "rooster": {
+        "title": "Rooster per weekdag",
+        "description": "Per dag: vanaf en tot wanneer de route in beeld is (en bij TomTom wordt opgevraagd), en hoe laat je er wilt zijn. Een dag zonder tijden is een dag zonder route. Zonder aankomsttijd toont de kaart de reistijd en wanneer je aankomt als je nu vertrekt.",
+        "sections": {
+          "monday": {
+            "name": "Maandag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          },
+          "tuesday": {
+            "name": "Dinsdag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          },
+          "wednesday": {
+            "name": "Woensdag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          },
+          "thursday": {
+            "name": "Donderdag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          },
+          "friday": {
+            "name": "Vrijdag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          },
+          "saturday": {
+            "name": "Zaterdag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          },
+          "sunday": {
+            "name": "Zondag",
+            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+          }
+        }
+      }
+    },
+    "error": {
+      "sleutel_leeg": "Vul een TomTom-sleutel in.",
+      "te_veel_stops": "Hoogstens drie tussenstops.",
+      "adres_niet_gevonden": "TomTom vindt dit adres niet. Voeg de plaatsnaam toe, of gebruik een coördinaat.",
+      "geen_locatie": "Deze entiteit heeft nu geen locatie.",
+      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, niet geactiveerd voor de Routing en Search API, of het dagkwotum is op.",
+      "geen_route": "TomTom vindt geen route over de weg tussen deze punten.",
+      "tomtom_fout": "TomTom gaf geen bruikbaar antwoord. Probeer het over een paar minuten opnieuw.",
+      "venster_half": "{dag}: vul zowel 'tonen vanaf' als 'tonen tot' in, of geen van beide.",
+      "venster_omgekeerd": "{dag}: 'tonen tot' ligt vóór 'tonen vanaf'. Een venster over middernacht kan niet; maak er twee dagen van.",
+      "aankomst_zonder_venster": "{dag}: een aankomsttijd zonder venster wordt nooit opgevraagd. Vul ook in vanaf en tot wanneer de route in beeld is."
+    }
+  },
+  "selector": {
+    "travel_mode": {
+      "options": {
+        "car": "Auto",
+        "motorcycle": "Motor"
+      }
+    },
+    "avoid": {
+      "options": {
+        "toll_roads": "Tolwegen",
+        "motorways": "Snelwegen",
+        "ferries": "Veerboten",
+        "unpaved_roads": "Onverharde wegen"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "reistijd": { "name": "Reistijd" },
+      "vertrektijd": { "name": "Vertrektijd" }
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a route",
+        "description": "One route at a time; add the integration again for a second route. Start and destination can be an address, a coordinate (52.09, 5.12) or an entity such as zone.home or person.name. Get a free TomTom key at developer.tomtom.com.",
+        "data": {
+          "name": "Route name",
+          "api_key": "TomTom key",
+          "start": "Leave from",
+          "via": "Stops on the way",
+          "destination": "Destination"
+        },
+        "data_description": {
+          "name": "Becomes the device name and the start of the entity IDs, such as sensor.to_work_travel_time.",
+          "api_key": "One key covers all your routes; it is filled in for a second route.",
+          "start": "zone.home is the address set in Home Assistant. With person.name you leave from wherever that person is now.",
+          "via": "At most three, one per line. With a stop, the departure time is worked back from arriving at the final destination.",
+          "destination": "As complete an address as possible, including the town."
+        }
+      },
+      "bevestig": {
+        "title": "Are these addresses right?",
+        "description": "TomTom found:\n\n{punten}\n\nTravel time now: {reistijd} min.\n\nIf an address is wrong, cancel and start again with a more precise one (street, number and town). When the route is shown and when you want to arrive is set afterwards under Configure."
+      }
+    },
+    "error": {
+      "sleutel_leeg": "Enter a TomTom key.",
+      "naam_leeg": "Give the route a name.",
+      "te_veel_stops": "At most three stops.",
+      "adres_niet_gevonden": "TomTom cannot find this address. Add the town, or use a coordinate.",
+      "geen_locatie": "This entity has no location right now.",
+      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for the Routing and Search APIs, or the daily quota is used up.",
+      "geen_route": "TomTom finds no road route between these points.",
+      "tomtom_fout": "TomTom gave no usable answer. Try again in a few minutes."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Route",
+        "description": "If the key or an address changes, they are looked up at TomTom again. The schedule per weekday is on the next page.",
+        "data": {
+          "api_key": "TomTom key",
+          "start": "Leave from",
+          "via": "Stops on the way",
+          "destination": "Destination",
+          "margin_minutes": "Margin",
+          "stop_minutes": "Time per stop",
+          "travel_mode": "Vehicle",
+          "avoid": "Avoid",
+          "alternatives": "Other routes to show",
+          "scan_minutes": "Refresh every"
+        },
+        "data_description": {
+          "api_key": "Free at developer.tomtom.com.",
+          "start": "An address, a coordinate, or an entity such as zone.home or person.name.",
+          "via": "At most three, one per line.",
+          "destination": "As complete an address as possible, including the town.",
+          "margin_minutes": "How many minutes before the arrival time you want to be there: parking, walking in. Always shown on the card.",
+          "stop_minutes": "How long you stand still at each stop. TomTom does not count it; the departure moves that much earlier.",
+          "travel_mode": "What TomTom calculates the route for.",
+          "avoid": "A preference, not a ban: TomTom uses them if there is no other way.",
+          "alternatives": "How many other routes the detail view lists, with how much longer they take.",
+          "scan_minutes": "Only inside the window; nothing is requested outside it. Two requests each time when there is an arrival time."
+        }
+      },
+      "rooster": {
+        "title": "Schedule per weekday",
+        "description": "For each day: from and until when the route is shown (and requested from TomTom), and what time you want to arrive. A day without times is a day without the route. Without an arrival time the card shows the travel time and when you would arrive if you left now.",
+        "sections": {
+          "monday": {
+            "name": "Monday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          },
+          "tuesday": {
+            "name": "Tuesday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          },
+          "wednesday": {
+            "name": "Wednesday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          },
+          "thursday": {
+            "name": "Thursday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          },
+          "friday": {
+            "name": "Friday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          },
+          "saturday": {
+            "name": "Saturday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          },
+          "sunday": {
+            "name": "Sunday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
+          }
+        }
+      }
+    },
+    "error": {
+      "sleutel_leeg": "Enter a TomTom key.",
+      "te_veel_stops": "At most three stops.",
+      "adres_niet_gevonden": "TomTom cannot find this address. Add the town, or use a coordinate.",
+      "geen_locatie": "This entity has no location right now.",
+      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for the Routing and Search APIs, or the daily quota is used up.",
+      "geen_route": "TomTom finds no road route between these points.",
+      "tomtom_fout": "TomTom gave no usable answer. Try again in a few minutes.",
+      "venster_half": "{dag}: fill in both 'show from' and 'show until', or neither.",
+      "venster_omgekeerd": "{dag}: 'show until' is before 'show from'. A window across midnight is not possible; make it two days.",
+      "aankomst_zonder_venster": "{dag}: an arrival time without a window is never requested. Also fill in from and until when the route is shown."
+    }
+  },
+  "selector": {
+    "travel_mode": {
+      "options": {
+        "car": "Car",
+        "motorcycle": "Motorcycle"
+      }
+    },
+    "avoid": {
+      "options": {
+        "toll_roads": "Toll roads",
+        "motorways": "Motorways",
+        "ferries": "Ferries",
+        "unpaved_roads": "Unpaved roads"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "reistijd": { "name": "Travel time" },
+      "vertrektijd": { "name": "Departure time" }
+    }
+  }
+}
