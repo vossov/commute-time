@@ -36,6 +36,15 @@ Dezelfde als in cycling-next-race en Stars:
 - **Uitbrengen gaat met een versienummer, nooit met een commit-hash**: tag
   `vX.Y.Z`; `.github/workflows/release.yml` maakt de release en weigert
   een tag die niet met de drie versies overeenkomt.
+- **Een afgeronde wijziging mag meteen live.** Staande toestemming van de
+  eigenaar, 17 november 2026, op de vraag "rechtstreeks naar main en taggen,
+  zonder pull request?": "ja". Dezelfde werkwijze als in cycling-next-race:
+  naar `main` en taggen hoort bij het werk afmaken, en een wijziging die op
+  een branch blijft staan draait nergens. Vraag alleen als de wijziging zelf
+  onzeker is (niet getest, een gok). De CI draait hier ná de push, dus kijk
+  na elke push of alles groen is, vooral hassfest: dat draait de
+  release-workflow zelf niet. HACS faalt zolang de repo geen beschrijving en
+  topics heeft; dat stel je in op GitHub en is geen codefout.
 - Degradeer netjes: een fout van TomTom wordt een `status: "fout"` met een
   leesbare `fout`-tekst in de attributen, nooit een uitzondering naar
   boven. Op een telefoon is er geen logboek.
