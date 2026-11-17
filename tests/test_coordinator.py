@@ -231,3 +231,107 @@ def test_tussenstops_en_alternatieven_die_tomtom_weigert(maak, tz, const):
     assert len(_routes(sessie)) == 3  # met, zonder, en de aankomstberekening
     _ronde(c)
     assert len(_routes(sessie)) == 5  # nu meteen zonder alternatieven
+
+
+# ── het ritme rond het venster ──────────────────────────────────────
+
+def _klok(monkeypatch, coordinator_mod, moment):
+    monkeypatch.setattr(coordinator_mod.dt_util, "now", lambda: moment)
+
+
+def test_een_weigering_na_de_slaap_begint_bij_het_gewone_ritme(maak, coordinator_mod, monkeypatch, tz):
+    """Buiten het venster staat `update_interval` op de tijd tot het venster
+    begint. Een 403 in de eerste ronde van de ochtend rekende daar vanaf en
+    sprong meteen naar een uur, terwijl het gewone ritme vijf minuten is: dan
+    hoort het naar vijftien."""
+    c = maak(NepSessie(route=(403, "")), datetime(2026, 11, 17, 6, 0, tzinfo=tz))
+    _ronde(c)
+    assert c.update_interval == timedelta(minutes=30, seconds=5)  # slaapt tot 06:30
+
+    _klok(monkeypatch, coordinator_mod, datetime(2026, 11, 17, 6, 30, 5, tzinfo=tz))
+    _ronde(c)
+    assert c.update_interval == timedelta(minutes=15)
+
+
+def test_het_terugschakelen_begint_elk_venster_opnieuw(maak, coordinator_mod, monkeypatch, tz):
+    c = maak(NepSessie(route=(403, "")), datetime(2026, 11, 17, 7, 0, tzinfo=tz))
+    _ronde(c)
+    _ronde(c)
+    assert c.update_interval == timedelta(minutes=45)
+
+    # het venster is voorbij en de volgende ochtend is het venster er weer
+    _klok(monkeypatch, coordinator_mod, datetime(2026, 11, 17, 9, 31, tzinfo=tz))
+    _ronde(c)
+    _klok(monkeypatch, coordinator_mod, datetime(2026, 11, 18, 6, 30, 5, tzinfo=tz))
+    _ronde(c)
+    assert c.update_interval == timedelta(minutes=15)
+
+
+def test_antwoordt_tomtom_weer_dan_staat_er_een_logregel_maar_niet_elke_ochtend(
+    maak, coordinator_mod, monkeypatch, tz, caplog
+):
+    """"TomTom antwoordt weer" hoort er alleen als het eerst weigerde. Het
+    stond er elke ochtend, omdat het interval na de slaap van het gewone
+    ritme verschilde."""
+    import logging
+
+    sessie = NepSessie()
+    c = maak(sessie, datetime(2026, 11, 17, 6, 0, tzinfo=tz))
+    _ronde(c)
+    _klok(monkeypatch, coordinator_mod, datetime(2026, 11, 17, 6, 30, 5, tzinfo=tz))
+    with caplog.at_level(logging.INFO):
+        _ronde(c)
+    assert "antwoordt weer" not in caplog.text
+
+    sessie.route = (403, "")
+    _klok(monkeypatch, coordinator_mod, datetime(2026, 11, 17, 6, 35, 5, tzinfo=tz))
+    _ronde(c)
+    sessie.route = (200, ROUTE)
+    _klok(monkeypatch, coordinator_mod, datetime(2026, 11, 17, 6, 50, 5, tzinfo=tz))
+    with caplog.at_level(logging.INFO):
+        _ronde(c)
+    assert "antwoordt weer" in caplog.text
+
+
+def test_een_hele_dag_geen_enkel_verzoek_buiten_het_venster(maak, coordinator_mod, monkeypatch, tz):
+    """De coordinator bepaalt zelf wanneer hij wakker wordt; hier wordt die
+    klok gevolgd zoals Home Assistant dat doet, over een hele dinsdag met een
+    venster van 06:30 tot 09:30 en een aankomsttijd van 08:30."""
+    from datetime import timezone
+
+    sessie = NepSessie()
+    nu = datetime(2026, 11, 17, 0, 0, tzinfo=tz)
+    einde = datetime(2026, 11, 18, 0, 0, tzinfo=tz)
+    c = maak(sessie, nu)
+    buiten, tijden, rondes = [], [], 0
+    while nu < einde:
+        _klok(monkeypatch, coordinator_mod, nu)
+        voor = len(sessie.adressen)
+        _ronde(c)
+        rondes += 1
+        verzoeken = len(sessie.adressen) - voor
+        if verzoeken:
+            tijden.append((nu, verzoeken))
+            if not (nu.replace(hour=6, minute=30, second=0) <= nu < nu.replace(hour=9, minute=30, second=0)):
+                buiten.append(nu)
+        nu = (nu.astimezone(timezone.utc) + c.update_interval).astimezone(tz)
+
+    assert buiten == [], f"verzoeken buiten het venster: {buiten}"
+    assert rondes < 100, "hij wordt vaker wakker dan een keer per paar minuten"
+    # 36 rondes met een routeverzoek, 23 daarvan met ook een aankomstberekening
+    # (die stopt om 08:25, de streeftijd), en één opzoeking van het adres
+    assert len(sessie.adressen) == 36 + 23 + 1
+    assert tijden[0][0] == datetime(2026, 11, 17, 6, 30, 5, tzinfo=tz)
+
+
+def test_een_dag_zonder_venster_kost_niets(maak, coordinator_mod, monkeypatch, tz):
+    from datetime import timezone
+
+    sessie = NepSessie()
+    nu = datetime(2026, 11, 21, 0, 0, tzinfo=tz)  # zaterdag
+    c = maak(sessie, nu)
+    while nu < datetime(2026, 11, 22, 0, 0, tzinfo=tz):
+        _klok(monkeypatch, coordinator_mod, nu)
+        _ronde(c)
+        nu = (nu.astimezone(timezone.utc) + c.update_interval).astimezone(tz)
+    assert sessie.adressen == []

@@ -11,10 +11,13 @@ Per ronde hoogstens twee verzoeken bij TomTom:
 Buiten het venster gaat er niets de deur uit: de coordinator slaapt tot het
 volgende venster begint (hooguit een uur per keer).
 
-Adressen worden één keer per dag opgezocht (zie adressen.py). Een standaard
-werkweek van 06:30 tot 09:30 met een aankomsttijd kost zo per werkdag
-36 × 2 verzoeken plus één per adres: ruim 70 van de 2.500 die het gratis
-plan per dag toestaat.
+Adressen worden één keer per dag opgezocht (zie adressen.py). Een venster van
+06:30 tot 09:30 met een aankomsttijd van 08:30 kost per dag 60 verzoeken,
+gemeten met een simulatie van een hele dag (tests/test_coordinator.py): 36
+rondes met een routeverzoek, 23 met ook een aankomstberekening (die stopt
+zodra de streeftijd voorbij is) en één opzoeking per adres. Ligt de
+aankomsttijd aan het eind van het venster, dan zijn het er hoogstens 73. Het
+gratis plan staat er 2.500 per dag toe.
 """
 from __future__ import annotations
 
@@ -122,6 +125,10 @@ class RouteCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # weigert; zie `_routes_nu`
         self._zonder_alternatieven = False
         self._laatste_fout: str | None = None
+        # het teruggeschakelde interval in seconden, of None als alles loopt.
+        # Apart bijgehouden en niet uit `update_interval` afgeleid: dat staat
+        # na de slaap buiten het venster op "tijd tot het venster begint"
+        self._terugschakeling_s: float | None = None
         super().__init__(
             hass,
             _LOGGER,
@@ -140,6 +147,8 @@ class RouteCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.update_interval = uitvoer.volgende_ronde(
                 nu, volgende, timedelta(minutes=MAX_SLAAP_MINUTEN)
             )
+            # een nieuw venster begint schoon, ook na een weigering gisteren
+            self._terugschakeling_s = None
             return uitvoer.buiten_venster(self.entry.title, nu, volgende)
 
         try:
@@ -149,12 +158,14 @@ class RouteCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._meld(str(err))
             return uitvoer.fout(self.entry.title, nu, plan, str(err))
         except TomTomFout as err:
+            self._terugschakeling_s = None
             self.update_interval = self._interval
             self._meld(str(err))
             return uitvoer.fout(self.entry.title, nu, plan, str(err))
 
-        if self.update_interval != self._interval:
+        if self._terugschakeling_s is not None:
             _LOGGER.info("%s: TomTom antwoordt weer; terug naar het gewone ritme", self.entry.title)
+        self._terugschakeling_s = None
         self.update_interval = self._interval
         self._laatste_fout = None
         return data
@@ -247,9 +258,16 @@ class RouteCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # ── als TomTom weigert ───────────────────────────────────────────
 
     def _terugschakelen(self) -> None:
-        """Het interval oprekken; harder vragen maakt een weigering erger."""
-        huidig = (self.update_interval or self._interval).total_seconds()
-        nieuw = min(MAX_TERUGSCHAKEL_MINUTEN * 60, max(huidig, self._interval.total_seconds()) * TERUGSCHAKEL_FACTOR)
+        """Het interval oprekken; harder vragen maakt een weigering erger.
+
+        Telt door vanaf het gewone ritme en niet vanaf `update_interval`. Dat
+        laatste stond na de slaap buiten het venster op de tijd tot het
+        venster begon, en dan sprong een weigering in de eerste ronde van de
+        ochtend meteen naar een uur in plaats van naar drie keer het ritme.
+        """
+        huidig = self._terugschakeling_s or self._interval.total_seconds()
+        nieuw = min(MAX_TERUGSCHAKEL_MINUTEN * 60, huidig * TERUGSCHAKEL_FACTOR)
+        self._terugschakeling_s = nieuw
         self.update_interval = timedelta(seconds=nieuw)
 
     def _meld(self, melding: str) -> None:

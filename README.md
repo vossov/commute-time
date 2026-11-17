@@ -246,18 +246,31 @@ actions:
 
 ## Wat het kost
 
-Per ronde één verzoek, of twee als er vandaag een aankomsttijd is. Elk
-adres wordt hooguit één keer per dag opgezocht. Buiten het venster gaat
-er niets de deur uit.
+Per ronde één verzoek, of twee als er vandaag een aankomsttijd is die nog
+niet voorbij is. Elk adres wordt hooguit één keer per dag opgezocht.
 
-Met het standaardrooster (06:30–09:30, elke 5 minuten) en een aankomsttijd
-is dat per route ruim 70 verzoeken per werkdag. Drie routes blijven ruim
-onder de 2.500 van het gratis plan.
+**Buiten het venster gaat er niets naar TomTom.** De integratie wordt dan
+hooguit een keer per uur wakker om te kijken of het venster begint, zonder
+verzoek. Dat is gemeten met een simulatie van een hele dag
+(`tests/test_coordinator.py`): bij een venster van 06:30 tot 09:30 ging het
+eerste verzoek om 06:30 uit en het laatste om 09:25, op een dag zonder
+venster geen enkel. Alleen waar jij zelf om vraagt gaat buiten het venster
+ook iets uit: een route toevoegen of de adressen wijzigen onder
+*Configureren* zoekt ze meteen op en vraagt één route, om te controleren
+dat het klopt.
+
+Voor 06:30–09:30, elke 5 minuten en een aankomsttijd van 08:30 zijn dat 60
+verzoeken per dag: 36 routeverzoeken, 23 aankomstberekeningen (die stoppen
+zodra de streeftijd, 08:25, voorbij is) en één opzoeking per adres. Ligt de
+aankomsttijd aan het eind van het venster, dan zijn het er hoogstens 73.
+Drie routes blijven ruim onder de 2.500 per dag van het gratis plan.
 
 Weigert TomTom (403: sleutel ongeldig of kwotum op; 429: te veel tegelijk),
-dan vraagt de integratie steeds minder vaak, tot hooguit één keer per uur.
-Antwoordt TomTom weer, dan gaat hij terug naar het gewone ritme. De
-melding staat op de kaart, want op een telefoon heb je geen logboek.
+dan vraagt de integratie steeds minder vaak: na de eerste weigering drie
+keer het gewone ritme, daarna steeds drie keer zoveel, tot hooguit één keer
+per uur. Antwoordt TomTom weer, dan gaat hij terug naar het gewone ritme.
+Elk nieuw venster begint schoon. De melding staat op de kaart, want op een
+telefoon heb je geen logboek.
 
 ## Privacy en opslag
 
