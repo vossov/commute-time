@@ -82,8 +82,11 @@ Zo stel je de sleutel in:
    proef bleken "Routing API" en "Search API" alleen niet genoeg; die
    sleutel staat nu met alle producten aan. Welk product ontbrak weten we
    niet: de namen in het portaal staan achter een inlog en zijn nooit
-   nagekeken, en het is zelfs niet zeker dat het aan de producten lag. Een
-   sleutel met alle producten is een grotere schade als hij uitlekt; de
+   nagekeken. Wat we wel weten: de melding was de algemene weigering van
+   TomTom (403), uit een versie die nog niet zei welke dienst weigerde, en
+   dezelfde sleutel werkte nadat alle producten aan stonden. Dat wijst op
+   een ontbrekend product; of TomTom een nieuwe sleutel pas na enige tijd
+   activeert, is niet nagegaan. Een sleutel met alle producten is een grotere schade als hij uitlekt; de
    andere stappen hier beperken dat, maar vervangen het minimum niet.
 
    Zo vind je het minimum, bij een sleutel waarmee het nu werkt:

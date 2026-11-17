@@ -160,8 +160,11 @@ de rand dragen de kleur, de tekst blijft `--primary-text-color`.
 waren (klassiek, niet Orbis). Bij het eerste echte gebruik, 17 november,
 bleken die twee te weinig en zette de eigenaar alle producten aan. Welk
 product ontbrak is niet bekend: de productnamen in het portaal staan achter
-een inlog en zijn nooit nagekeken, en het is niet eens zeker dat het aan de
-producten lag. **Beweer geen rechtenlijst van een portaal dat je niet hebt
+een inlog en zijn nooit nagekeken. Wel bekend, volgens de eigenaar: de
+melding was de algemene weigering (403) van vóór v0.1.2, die nog niet zei
+welke dienst weigerde, en dezelfde sleutel werkte nadat alle producten aan
+stonden. Dat wijst op een ontbrekend product; of TomTom een nieuwe sleutel
+pas na enige tijd activeert, is niet nagegaan. **Beweer geen rechtenlijst van een portaal dat je niet hebt
 gezien.** Wat wel staat: een aparte sleutel, geen domeinwhitelist (die werkt
 via CORS en de sleutel komt nooit in een browser) en geen betaalgegevens.
 
