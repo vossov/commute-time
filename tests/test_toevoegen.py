@@ -60,9 +60,22 @@ def test_meer_dan_drie_stops(controleer):
     assert sessie.adressen == []
 
 
-def test_een_geweigerde_sleutel(controleer):
+def test_een_geweigerde_sleutel_noemt_de_dienst_die_weigerde(controleer):
+    """Zonder dat bleef er raden over welke producten in het portaal aan
+    moesten: dezelfde melding voor het opzoeken en voor de route."""
+    # het adres wordt eerst opgezocht, dus dat is wat er weigert
     fouten, _, _ = controleer(NepSessie(geocode=(403, ""), route=(403, "")))
-    assert fouten == {"base": "sleutel_geweigerd"}
+    assert fouten == {"base": "sleutel_geweigerd_search"}
+
+    # adres lukt, route niet
+    fouten, _, _ = controleer(NepSessie(route=(403, "")))
+    assert fouten == {"base": "sleutel_geweigerd_routing"}
+
+    # zonder adres wordt de Search API niet eens aangeroepen
+    sessie = NepSessie(route=(403, ""))
+    fouten, _, _ = controleer(sessie, destination="52.3676, 4.9041")
+    assert fouten == {"base": "sleutel_geweigerd_routing"}
+    assert _geocodes(sessie) == []
 
 
 def test_een_onbekend_adres_staat_bij_het_goede_veld(controleer):

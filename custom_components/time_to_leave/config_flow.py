@@ -160,6 +160,19 @@ def _lees_rooster(invoer: dict[str, Any]) -> dict[str, dict[str, str | None]]:
     }
 
 
+def _geweigerd(fout: TomTomGeweigerd) -> str:
+    """De foutcode voor een geweigerde sleutel, per dienst.
+
+    Het scherm noemt zo welke van de twee aanroepen TomTom weigerde. Het
+    zegt niet welk product in het portaal ontbreekt; dat staat daar achter
+    een inlog en is nooit nagekeken.
+    """
+    return {
+        "search": "sleutel_geweigerd_search",
+        "routing": "sleutel_geweigerd_routing",
+    }.get(fout.dienst, "sleutel_geweigerd")
+
+
 async def controleer_route(hass: Any, invoer: dict[str, Any]) -> tuple[dict[str, str], list[Any], int | None]:
     """Zoek elk adres op en vraag één route.
 
@@ -186,8 +199,8 @@ async def controleer_route(hass: Any, invoer: dict[str, Any]) -> tuple[dict[str,
             fouten[veld] = "geen_locatie"
         except AdresNietGevonden:
             fouten[veld] = "adres_niet_gevonden"
-        except TomTomGeweigerd:
-            return {"base": "sleutel_geweigerd"}, [], None
+        except TomTomGeweigerd as err:
+            return {"base": _geweigerd(err)}, [], None
         except TomTomFout:
             return {"base": "tomtom_fout"}, [], None
     if fouten:
@@ -200,8 +213,8 @@ async def controleer_route(hass: Any, invoer: dict[str, Any]) -> tuple[dict[str,
         )
     except GeenRoute:
         return {"base": "geen_route"}, punten, None
-    except TomTomGeweigerd:
-        return {"base": "sleutel_geweigerd"}, [], None
+    except TomTomGeweigerd as err:
+        return {"base": _geweigerd(err)}, [], None
     except TomTomFout:
         return {"base": "tomtom_fout"}, [], None
     routes = lees_routes(data)

@@ -59,7 +59,18 @@ class TomTomFout(Exception):
 
 
 class TomTomGeweigerd(TomTomFout):
-    """403: sleutel ongeldig, niet voor deze dienst geactiveerd, of op."""
+    """403: sleutel ongeldig, voor dit product niet aangezet, of het
+    dagkwotum is op.
+
+    `dienst` zegt welke van onze twee aanroepen TomTom weigerde ("search" of
+    "routing"; leeg als dat niet te zien was). Zonder dat is een geweigerde
+    sleutel niet uit elkaar te halen van een ontbrekend product, en bleef er
+    alleen raden over welke vinkjes in het portaal aan moesten.
+    """
+
+    def __init__(self, bericht: str, dienst: str = "") -> None:
+        super().__init__(bericht)
+        self.dienst = dienst
 
 
 class TomTomTeVaak(TomTomFout):
@@ -186,17 +197,43 @@ def _tijdstip(waarde: Any) -> datetime | None:
     return moment if moment.tzinfo is not None else None
 
 
-def verwerk_antwoord(status: int, tekst: str) -> dict[str, Any]:
-    """Statuscode en tekst naar JSON, of de passende fout."""
+DIENSTNAAM = {
+    "search": "de Search API (adressen opzoeken)",
+    "routing": "de Routing API (routes berekenen)",
+}
+
+
+def dienst_van(url: str) -> str:
+    """Welke van onze twee aanroepen een adres is; leeg als het geen van beide is."""
+    if "/search/" in url:
+        return "search"
+    if "/routing/" in url:
+        return "routing"
+    return ""
+
+
+def verwerk_antwoord(
+    status: int, tekst: str, *, dienst: str = "", sleutel: str = ""
+) -> dict[str, Any]:
+    """Statuscode en tekst naar JSON, of de passende fout.
+
+    `dienst` en `sleutel` maken van een 403 een melding die zegt welke
+    dienst weigerde en wat TomTom er zelf over zegt. De sleutel gaat uit die
+    tekst: een foutantwoord kan het adres van het verzoek herhalen.
+    """
+    detail = zonder_sleutel(_detailmelding(tekst), sleutel)
     if status == 403:
+        voor = f" voor {DIENSTNAAM[dienst]}" if dienst in DIENSTNAAM else ""
         raise TomTomGeweigerd(
-            "TomTom weigert de sleutel (403): ongeldig, niet geactiveerd voor "
-            "deze dienst, of het dagkwotum is op"
+            f"TomTom weigert de sleutel{voor} (403): ongeldig, voor dit product "
+            "niet aangezet, of het dagkwotum is op"
+            + (f". {detail}" if detail else ""),
+            dienst,
         )
     if status == 429:
         raise TomTomTeVaak("TomTom krijgt te veel verzoeken voor deze sleutel (429)")
     if status == 400:
-        raise GeenRoute(_detailmelding(tekst) or "TomTom kan hier geen route tussen leggen (400)")
+        raise GeenRoute(detail or "TomTom kan hier geen route tussen leggen (400)")
     if status != 200:
         raise TomTomFout(f"TomTom antwoordde met {status}")
     try:
@@ -424,4 +461,4 @@ async def vraag(
         raise TomTomFout(f"TomTom antwoordde niet binnen {TIMEOUT_S} seconden") from err
     except aiohttp.ClientError as err:
         raise TomTomFout(zonder_sleutel(f"TomTom niet bereikbaar: {err}", sleutel)) from err
-    return verwerk_antwoord(status, tekst), headers
+    return verwerk_antwoord(status, tekst, dienst=dienst_van(url), sleutel=sleutel), headers

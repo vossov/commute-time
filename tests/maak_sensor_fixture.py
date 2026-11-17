@@ -68,7 +68,7 @@ def staten() -> dict:
         ),
         "fout": uitvoer.fout(
             "Naar werk", NU, plan,
-            "TomTom weigert de sleutel (403): ongeldig, niet geactiveerd voor deze dienst, of het dagkwotum is op",
+            "TomTom weigert de sleutel voor de Routing API (routes berekenen) (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op",
         ),
     }
 

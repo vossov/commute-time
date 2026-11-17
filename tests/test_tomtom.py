@@ -198,6 +198,39 @@ def test_statuscodes_worden_de_juiste_fout(tomtom):
         tomtom.verwerk_antwoord(200, "geen json")
 
 
+def test_een_403_zegt_welke_dienst_weigerde(tomtom):
+    with pytest.raises(tomtom.TomTomGeweigerd) as fout:
+        tomtom.verwerk_antwoord(403, "", dienst="search")
+    assert fout.value.dienst == "search"
+    assert "Search API" in str(fout.value) and "403" in str(fout.value)
+
+    with pytest.raises(tomtom.TomTomGeweigerd) as fout:
+        tomtom.verwerk_antwoord(403, "", dienst="routing")
+    assert "Routing API" in str(fout.value)
+
+    # niet te zien welke dienst: de melding blijft kloppen, zonder te raden
+    with pytest.raises(tomtom.TomTomGeweigerd) as fout:
+        tomtom.verwerk_antwoord(403, "")
+    assert fout.value.dienst == ""
+    assert "API" not in str(fout.value)
+
+
+def test_een_403_herhaalt_wat_tomtom_zelf_zegt_zonder_de_sleutel(tomtom):
+    """De tekst van TomTom is het enige dat zegt waaróm; een foutantwoord kan
+    het adres van het verzoek herhalen, en daar staat de sleutel in."""
+    tekst = json.dumps({"detailedError": {"code": "Forbidden", "message": "key GEHEIM is not allowed here"}})
+    with pytest.raises(tomtom.TomTomGeweigerd) as fout:
+        tomtom.verwerk_antwoord(403, tekst, dienst="routing", sleutel="GEHEIM")
+    assert "is not allowed here" in str(fout.value)
+    assert "GEHEIM" not in str(fout.value)
+
+
+def test_de_dienst_komt_uit_het_adres(tomtom):
+    assert tomtom.dienst_van("https://api.tomtom.com/routing/1/calculateRoute/1,2:3,4/json?key=x") == "routing"
+    assert tomtom.dienst_van("https://api.tomtom.com/search/2/geocode/Utrecht.json?key=x") == "search"
+    assert tomtom.dienst_van("https://example.org/") == ""
+
+
 def test_een_400_noemt_de_melding_van_tomtom(tomtom):
     tekst = (FIXTURES / "tomtom_fout_documentatie.json").read_text(encoding="utf-8")
     with pytest.raises(tomtom.GeenRoute) as fout:

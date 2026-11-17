@@ -73,6 +73,6 @@
     "status": "fout",
     "venster_van": "06:30",
     "venster_tot": "09:30",
-    "fout": "TomTom weigert de sleutel (403): ongeldig, niet geactiveerd voor deze dienst, of het dagkwotum is op"
+    "fout": "TomTom weigert de sleutel voor de Routing API (routes berekenen) (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op"
   }
 }

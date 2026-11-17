@@ -158,6 +158,8 @@ def test_elke_fout_uit_de_code_heeft_een_tekst():
     bron = FLOW.read_text(encoding="utf-8") + (COMPONENT / "rooster.py").read_text(encoding="utf-8")
     # alleen waar de code echt een fout toekent: fouten[x] = "…" of {"base": "…"}
     codes = set(re.findall(r'(?:fouten\[\w+\]\s*=|\{\s*(?:"base"|CONF_\w+)\s*:)\s*"([a-z_]+)"', bron))
+    # de geweigerde sleutel wordt per dienst gekozen, uit een opzoektabel
+    codes |= set(re.findall(r'"(sleutel_geweigerd\w*)"', bron))
     s = _laad(STRINGS)
     bekend = set(s["config"]["error"]) | set(s["options"]["error"])
     assert codes, "geen foutcodes gevonden; is de schrijfwijze veranderd?"

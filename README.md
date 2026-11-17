@@ -59,15 +59,15 @@ Installeer *Time to Leave* en herstart Home Assistant.
 De kaart hoort bij de integratie en wordt vanzelf geladen. Je hoeft geen
 resources toe te voegen, geen button-card en geen Bubble Card.
 
-### Een TomTom-sleutel, met zo min mogelijk rechten
+### Een TomTom-sleutel
 
-De integratie gebruikt precies twee diensten van TomTom, allebei in de
+De integratie roept precies twee diensten van TomTom aan, allebei in de
 klassieke versie (niet de nieuwere Orbis-varianten):
 
-| product | adres | waarvoor |
+| dienst | adres | waarvoor |
 |---|---|---|
-| **Routing API** | `api.tomtom.com/routing/1/calculateRoute` | reistijd met verkeer, wegen, files, en de vertrektijd voor een aankomsttijd |
-| **Search API** | `api.tomtom.com/search/2/geocode` | een ingetypt adres opzoeken. Niet nodig voor `zone.home`, een persoon of een coördinaat |
+| Routing API | `api.tomtom.com/routing/1/calculateRoute` | reistijd met verkeer, wegen, files, en de vertrektijd voor een aankomsttijd |
+| Search API | `api.tomtom.com/search/2/geocode` | een ingetypt adres opzoeken. Niet nodig voor `zone.home`, een persoon of een coördinaat |
 
 Zo stel je de sleutel in:
 
@@ -77,11 +77,25 @@ Zo stel je de sleutel in:
    om per toepassing een eigen sleutel te gebruiken
    ([best practices](https://docs.tomtom.com/platform/documentation/api-best-practices/api-key-management-best-practices)).
    Lekt hij uit, dan raakt dat alleen dit.
-3. **Zet alleen de Routing API en de Search API aan**, en de rest uit:
-   kaarten, de losse Traffic API, enzovoort. Het verkeer zit al in de
-   Routing API; de Traffic API (losse files- en doorstroomgegevens) wordt
-   niet gebruikt. Binnen de Search API kan het niet fijner: TomTom beperkt
-   per product, niet per onderdeel.
+3. **Zet de producten aan die TomTom vraagt, en zoek daarna het minimum.**
+   Welke producten dat precies zijn, is **niet vastgesteld**. In de eerste
+   proef bleken "Routing API" en "Search API" alleen niet genoeg; die
+   sleutel staat nu met alle producten aan. Welk product ontbrak weten we
+   niet: de namen in het portaal staan achter een inlog en zijn nooit
+   nagekeken, en het is zelfs niet zeker dat het aan de producten lag. Een
+   sleutel met alle producten is een grotere schade als hij uitlekt; de
+   andere stappen hier beperken dat, maar vervangen het minimum niet.
+
+   Zo vind je het minimum, bij een sleutel waarmee het nu werkt:
+   - Zet één product uit.
+   - Voeg de integratie opnieuw toe met een **adres** als bestemming (met
+     alleen coördinaten of `zone.home` wordt de Search API niet
+     geprobeerd) en breek bij de bevestigingsstap af. Er wordt dan niets
+     opgeslagen.
+   - Weigert TomTom, dan noemt de melding de dienst: *Search API* (adressen
+     opzoeken) of *Routing API* (routes berekenen). Dat is de dienst die
+     TomTom weigerde, niet de naam van het product dat ontbreekt. Zet het
+     product weer aan en probeer het volgende.
 4. **Laat de domeinwhitelist leeg.** Die is bedoeld voor een sleutel die in
    een webpagina staat, en werkt via CORS, een controle die de browser
    doet. Hier gaat de sleutel van Home Assistant zelf naar TomTom en komt
@@ -92,12 +106,6 @@ Zo stel je de sleutel in:
    sleutel geen rekening opleveren; boven het dagkwotum weigert TomTom, en
    dat staat dan op de kaart. Dat volgt uit het plan; het is niet zelf
    uitgeprobeerd.
-
-**Niet nagekeken:** hoe de vinkjes in het portaal precies heten; dat staat
-achter een inlog. Staan er naast elkaar een klassieke en een
-Orbis-versie, kies dan de klassieke. Ontbreekt er een, dan zegt het
-toevoegscherm bij het eerste opzoeken of de eerste route dat TomTom de
-sleutel weigert.
 
 **Waar de sleutel staat:** in de opslag van Home Assistant
 (`.storage/core.config_entries`), onversleuteld, zoals bij elke

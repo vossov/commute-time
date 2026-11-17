@@ -13,7 +13,7 @@
         },
         "data_description": {
           "name": "Wordt de naam van het apparaat en het begin van de entiteits-ID's, zoals sensor.naar_werk_reistijd.",
-          "api_key": "Maak er een aparte sleutel voor en zet daarbij alleen de Routing API en de Search API aan; de domeinwhitelist blijft leeg. Eén sleutel volstaat voor al je routes; bij een tweede route staat hij al ingevuld.",
+          "api_key": "Maak er een aparte sleutel voor, zonder domeinwhitelist. Welke producten aan moeten staan, staat in de README. Eén sleutel volstaat voor al je routes; bij een tweede route staat hij al ingevuld.",
           "start": "zone.home is het adres dat in Home Assistant is ingesteld. Met person.naam vertrek je vanaf waar die persoon nu is.",
           "via": "Hoogstens drie, één per regel. Bij een route met een stop rekent de vertrektijd terug vanaf de aankomst op de eindbestemming.",
           "destination": "Een adres zo volledig mogelijk, met plaatsnaam."
@@ -30,7 +30,9 @@
       "te_veel_stops": "Hoogstens drie tussenstops.",
       "adres_niet_gevonden": "TomTom vindt dit adres niet. Voeg de plaatsnaam toe, of gebruik een coördinaat.",
       "geen_locatie": "Deze entiteit heeft nu geen locatie.",
-      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, niet geactiveerd voor de Routing en Search API, of het dagkwotum is op.",
+      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, voor dit product niet aangezet, of het dagkwotum is op.",
+      "sleutel_geweigerd_search": "TomTom weigert de sleutel voor de Search API (adressen opzoeken): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
+      "sleutel_geweigerd_routing": "TomTom weigert de sleutel voor de Routing API (routes berekenen): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
       "geen_route": "TomTom vindt geen route over de weg tussen deze punten.",
       "tomtom_fout": "TomTom gaf geen bruikbaar antwoord. Probeer het over een paar minuten opnieuw."
     }
@@ -53,7 +55,7 @@
           "scan_minutes": "Verversen elke"
         },
         "data_description": {
-          "api_key": "Gratis aan te vragen op developer.tomtom.com. Alleen de Routing API en de Search API hoeven aan; de domeinwhitelist blijft leeg.",
+          "api_key": "Gratis aan te vragen op developer.tomtom.com, zonder domeinwhitelist. Welke producten aan moeten staan, staat in de README.",
           "start": "Een adres, een coördinaat, of een entiteit zoals zone.home of person.naam.",
           "via": "Hoogstens drie, één per regel.",
           "destination": "Een adres zo volledig mogelijk, met plaatsnaam.",
@@ -105,7 +107,9 @@
       "te_veel_stops": "Hoogstens drie tussenstops.",
       "adres_niet_gevonden": "TomTom vindt dit adres niet. Voeg de plaatsnaam toe, of gebruik een coördinaat.",
       "geen_locatie": "Deze entiteit heeft nu geen locatie.",
-      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, niet geactiveerd voor de Routing en Search API, of het dagkwotum is op.",
+      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, voor dit product niet aangezet, of het dagkwotum is op.",
+      "sleutel_geweigerd_search": "TomTom weigert de sleutel voor de Search API (adressen opzoeken): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
+      "sleutel_geweigerd_routing": "TomTom weigert de sleutel voor de Routing API (routes berekenen): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
       "geen_route": "TomTom vindt geen route over de weg tussen deze punten.",
       "tomtom_fout": "TomTom gaf geen bruikbaar antwoord. Probeer het over een paar minuten opnieuw.",
       "venster_half": "{dag}: vul zowel 'tonen vanaf' als 'tonen tot' in, of geen van beide.",

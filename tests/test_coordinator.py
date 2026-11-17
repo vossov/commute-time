@@ -182,6 +182,8 @@ def test_een_weigering_wordt_een_melding_en_een_trager_ritme(maak, tz):
     data = _ronde(c)
     assert data["status"] == "fout"
     assert "403" in data["fout"]
+    # het adres lukte, de route niet: de kaart zegt welke dienst weigerde
+    assert "Routing API" in data["fout"]
     assert "reistijd_min" not in data
     assert c.update_interval == timedelta(minutes=15)
     _ronde(c)

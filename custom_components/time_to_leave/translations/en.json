@@ -13,7 +13,7 @@
         },
         "data_description": {
           "name": "Becomes the device name and the start of the entity IDs, such as sensor.to_work_travel_time.",
-          "api_key": "Create a separate key and enable only the Routing API and the Search API on it; leave the domain whitelist empty. One key covers all your routes; it is filled in for a second route.",
+          "api_key": "Create a separate key for this, without a domain whitelist. Which products must be enabled is in the README. One key covers all your routes; it is filled in for a second route.",
           "start": "zone.home is the address set in Home Assistant. With person.name you leave from wherever that person is now.",
           "via": "At most three, one per line. With a stop, the departure time is worked back from arriving at the final destination.",
           "destination": "As complete an address as possible, including the town."
@@ -30,7 +30,9 @@
       "te_veel_stops": "At most three stops.",
       "adres_niet_gevonden": "TomTom cannot find this address. Add the town, or use a coordinate.",
       "geen_locatie": "This entity has no location right now.",
-      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for the Routing and Search APIs, or the daily quota is used up.",
+      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for this product, or the daily quota is used up.",
+      "sleutel_geweigerd_search": "TomTom refuses the key for the Search API (looking up addresses): invalid, that product is not enabled on this key, or the daily quota is used up.",
+      "sleutel_geweigerd_routing": "TomTom refuses the key for the Routing API (calculating routes): invalid, that product is not enabled on this key, or the daily quota is used up.",
       "geen_route": "TomTom finds no road route between these points.",
       "tomtom_fout": "TomTom gave no usable answer. Try again in a few minutes."
     }
@@ -53,7 +55,7 @@
           "scan_minutes": "Refresh every"
         },
         "data_description": {
-          "api_key": "Free at developer.tomtom.com. Only the Routing API and the Search API need to be enabled; leave the domain whitelist empty.",
+          "api_key": "Free at developer.tomtom.com, without a domain whitelist. Which products must be enabled is in the README.",
           "start": "An address, a coordinate, or an entity such as zone.home or person.name.",
           "via": "At most three, one per line.",
           "destination": "As complete an address as possible, including the town.",
@@ -105,7 +107,9 @@
       "te_veel_stops": "At most three stops.",
       "adres_niet_gevonden": "TomTom cannot find this address. Add the town, or use a coordinate.",
       "geen_locatie": "This entity has no location right now.",
-      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for the Routing and Search APIs, or the daily quota is used up.",
+      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for this product, or the daily quota is used up.",
+      "sleutel_geweigerd_search": "TomTom refuses the key for the Search API (looking up addresses): invalid, that product is not enabled on this key, or the daily quota is used up.",
+      "sleutel_geweigerd_routing": "TomTom refuses the key for the Routing API (calculating routes): invalid, that product is not enabled on this key, or the daily quota is used up.",
       "geen_route": "TomTom finds no road route between these points.",
       "tomtom_fout": "TomTom gave no usable answer. Try again in a few minutes.",
       "venster_half": "{dag}: fill in both 'show from' and 'show until', or neither.",

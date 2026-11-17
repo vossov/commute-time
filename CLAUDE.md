@@ -146,14 +146,24 @@ de rand dragen de kleur, de tekst blijft `--primary-text-color`.
 | adres | `api.tomtom.com/search/2/geocode/{adres}.json` | documentatie, 16-11-2026 |
 | Waze openen | `waze.com/ul?ll=…&navigate=yes` | developers.google.com/waze/deeplinks, 16-11-2026 |
 
-**Rechten van de sleutel (minimale rechten).** De README zegt de gebruiker
-een aparte sleutel te maken met alleen de Routing API en de Search API
-(klassiek, niet Orbis), zonder domeinwhitelist (die werkt via CORS en de
-sleutel komt nooit in een browser) en zonder betaalgegevens. Wie een
-TomTom-dienst toevoegt, zet hem in die tabel;
+**Rechten van de sleutel: het minimum is níét vastgesteld.** Op 16 november
+2026 beweerde de README dat alleen de Routing API en de Search API nodig
+waren (klassiek, niet Orbis). Bij het eerste echte gebruik, 17 november,
+bleken die twee te weinig en zette de eigenaar alle producten aan. Welk
+product ontbrak is niet bekend: de productnamen in het portaal staan achter
+een inlog en zijn nooit nagekeken, en het is niet eens zeker dat het aan de
+producten lag. **Beweer geen rechtenlijst van een portaal dat je niet hebt
+gezien.** Wat wel staat: een aparte sleutel, geen domeinwhitelist (die werkt
+via CORS en de sleutel komt nooit in een browser) en geen betaalgegevens.
+
+Om het minimum alsnog te vinden zegt een geweigerde sleutel nu welke dienst
+weigerde (`TomTomGeweigerd.dienst`, `tomtom.dienst_van`; in het scherm
+`sleutel_geweigerd_search` en `_routing`) en herhaalt de melding wat TomTom
+zelf schrijft, zonder de sleutel. Wie het minimum vaststelt, zet het met
+datum in de README.
 `test_de_readme_noemt_precies_de_tomtom_diensten_die_de_code_gebruikt`
-faalt anders. De namen van de vinkjes in het portaal zijn niet nagekeken
-(achter een inlog).
+bewaakt alleen dat de adressen in de README kloppen met de code, niet welke
+vinkjes erbij horen.
 
 **Wat níét nagekeken is:**
 
