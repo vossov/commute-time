@@ -67,6 +67,22 @@ jobs:
             echo "nieuw=ja" >> "$GITHUB_OUTPUT"
           fi
 
+      # Bestaat de release al, dan alleen de notes gelijktrekken met de
+      # changelog. Zo is een tikfout in de notes te herstellen door
+      # CHANGELOG.md aan te passen, in plaats van de releasepagina met de hand
+      # te bewerken. Alleen de huidige versie; oudere releases blijven staan.
+      - name: Release-notes gelijktrekken met CHANGELOG.md
+        if: steps.bestaat.outputs.nieuw == 'nee'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          v="${{ steps.versie.outputs.versie }}"
+          python3 tools/release_notes.py "$v" check
+          python3 tools/release_notes.py "$v" titel > titel.txt
+          python3 tools/release_notes.py "$v" tekst > notes.md
+          gh release edit "v$v" --title "$(cat titel.txt)" --notes-file notes.md
+          echo "::notice::notes van v$v gelijkgetrokken met CHANGELOG.md"
+
       - name: De drie versienummers moeten gelijk zijn
         if: steps.bestaat.outputs.nieuw == 'ja'
         # Anders installeert HACS de ene versie terwijl Home Assistant een

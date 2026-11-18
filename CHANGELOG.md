@@ -16,7 +16,7 @@ Een sectie is zo opgebouwd, nieuwste bovenaan:
 > Eerste versie met een versienummer en release-notes in HACS
 
 ### Verbeterd
-- In HACS staat vanaf nu een versienummer en een beschrijving in plaats van een commit-code. Elke versie krijgt vanzelf een GitHub-release, met de notes uit dit bestand.
+- In HACS staat vanaf nu een versienummer en een beschrijving in plaats van een commit-code. Elke versie krijgt vanzelf een GitHub-release, met de notes uit CHANGELOG.md.
 - Een getal en zijn eenheid blijven op de kaart bij elkaar: “3 min file”, “47 min rijden” en “11 min te laat” breken niet meer midden in de eenheid.
 - De README is opnieuw opgezet, met afbeeldingen van de kaart. De lange uitleg (over de TomTom-sleutel, waarom geen Waze, en nauwkeurigheid en kosten) staat in de map `docs`.
 

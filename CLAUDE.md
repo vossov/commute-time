@@ -44,7 +44,10 @@ Dezelfde als in cycling-next-race en Stars:
   hoeft niet en lukt hier niet. De workflow draait eerst de tests, de
   Chrome 61-grens en hassfest, en faalt als de drie versies verschillen of de
   changelog-sectie ontbreekt. `tests/test_release.py` faalt in de gewone CI
-  als de versie in de manifest geen netjes ingevulde sectie heeft.
+  als de versie in de manifest geen netjes ingevulde sectie heeft. Bestaat de
+  release al, dan trekt dezelfde workflow de notes gelijk met de changelog:
+  een tikfout herstel je in `CHANGELOG.md` van de huidige versie en push je;
+  de releasepagina hoef je niet te bewerken (en kan hier ook niet).
 - **Schrijf de changelog voor de gebruiker**, in gewone taal: wat verandert er
   voor hem, niet welke functie je aanpaste. Heeft een eerdere versie iets
   onjuists beweerd, zet dat er dan bij onder "Let op" (zie 0.1.2). Alleen
