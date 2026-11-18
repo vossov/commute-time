@@ -9,14 +9,17 @@ een Bubble Card-stijl.
   (eerst naar school, dan naar je werk) en een bestemming. Begin en eind
   mogen een adres zijn, een coördinaat, of een entiteit: `zone.home`, of
   `person.naam` om te vertrekken vanaf waar iemand nu is.
-- Per weekdag stel je in **wanneer de route in beeld is** en **hoe laat je
-  er wilt zijn**. Daaruit volgt de vertrektijd, met een marge die je zelf
-  kiest.
+- Per weekdag stel je in **wanneer de route in beeld is** en, **als je dat
+  wilt**, **hoe laat je er wilt zijn**. Met een aankomsttijd volgt daaruit
+  de vertrektijd, met een marge die je zelf kiest. Zonder aankomsttijd
+  toont de kaart hoe lang je erover doet.
 - Buiten dat venster wordt er niets opgevraagd en verbergt de kaart de
   route.
-- De kaart toont de reistijd, de wegen ("via A12 · A27") en de files.
-  Een tik opent de details: andere routes, etappes, en de adressen zoals
-  ze gevonden zijn. Een knop opent **Waze** om te gaan rijden.
+- Bovenaan de kaart staat **de vertrektijd** ("Vertrek 07:52"), of zonder
+  aankomsttijd **de rijtijd** ("34 min"). Eronder de wegen ("via A12 · A27")
+  en de files. Een tik opent de details: andere routes, etappes, en de
+  adressen zoals ze gevonden zijn. Een knop opent **Waze** om te gaan
+  rijden.
 
 ## Waarom TomTom en niet Waze
 
@@ -149,8 +152,9 @@ Daarna, onder **Configureren**:
 
 En op de tweede pagina het **rooster**: per weekdag *tonen vanaf*, *tonen
 tot* en *aankomen om*. Standaard maandag tot en met vrijdag van 06:30 tot
-09:30, zonder aankomsttijd. Zonder aankomsttijd toont de kaart de
-reistijd en wanneer je aankomt als je nu vertrekt.
+09:30, zonder aankomsttijd. De aankomsttijd is optioneel en per dag in te
+stellen; maak je het veld leeg (het tijdveld heeft daarvoor een
+wis-knop), dan is de rijtijd het hoofdgetal op de kaart.
 
 ## De kaart
 
@@ -170,21 +174,35 @@ Alles is ook in de visuele editor in te stellen.
 |---|---|---|
 | `entities` | — | de reistijd-sensoren van je routes, in volgorde |
 | `title` | leeg | een kop boven de kaart |
-| `design` | `default` | `default` (eigen opmaak), `ha` (volgt je Home Assistant-thema) of `bubble` (in de stijl van Bubble Card, zonder die kaart nodig te hebben) |
+| `design` | `default` | `default` (eigen opmaak), `ha` (volgt je Home Assistant-thema) of `bubble` (in de stijl van Bubble Card, zonder die kaart nodig te hebben; zie hieronder) |
 | `show` | `window` | `window`: een route staat er alleen binnen zijn venster, en zonder route in beeld verbergt de kaart zich. `always`: altijd, met buiten het venster wanneer hij terugkomt |
+| `target` | `false` | toont ook de aankomsttijd en marge die je zelf hebt ingevoerd ("voor 08:30, 5 min marge"), onder de naam en in het venster |
 | `details` | `true` | een tik opent het detailvenster |
 | `waze` | `true` | een knop om Waze te openen met de bestemming |
 
 Wat de kaart toont:
 
-- **Op de tegel**: de reistijd, de status ("Vertrek om 07:52 · over 18
-  min", "Vertrek nu · aankomst 08:21", of "… 11 min te laat"), voor
-  wanneer en met welke marge, de wegen en de minuten file. Het stipje is
-  groen, oranje of rood naar de vertraging die TomTom meldt.
+- **Bovenaan, rechts**: met een aankomsttijd de vertrektijd ("Vertrek
+  07:52", of "Vertrek nu" als het zover is), zonder aankomsttijd de rijtijd
+  ("34 min"). Een aftelling ("over 18 min") staat er niet.
+- **Onder de naam**: hoe lang je rijdt, de wegen en de minuten file. Is je
+  vertrek nu en kom je te laat, dan staat daar "11 min te laat". Het
+  stipje (bij `bubble` de kleur van het icoon) is groen, oranje of rood naar
+  de vertraging die TomTom meldt.
 - **In het venster**: de reistijd nu, gebruikelijk op dit uur, en zonder
   verkeer; wat er verwacht wordt bij je vertrektijd; de files met weg,
   snelheid en vertraging; de etappes langs je tussenstops, elk met een
   eigen Waze-knop; andere routes; en de adressen zoals ze gevonden zijn.
+  De aankomsttijd en marge staan er alleen bij `target: true`.
+
+**De Bubble-stijl** is nagebouwd naar de echte Bubble Card, nagelezen in
+`dist/bubble-card.js` van [Clooos/Bubble-Card](https://github.com/Clooos/Bubble-Card):
+een pil in de secundaire achtergrondkleur met het icoon in een rondje in de
+kaartachtergrond, 50 px hoog, naam 13 px vet en status 12 px, de waarden als
+pillen van 36 px, en een pop-up die onderaan het scherm plakt. Ze gebruikt
+dezelfde terugvalketens, dus stelt je thema `--bubble-main-background-color`,
+`--bubble-border-radius` en dergelijke in, dan volgt de kaart die. Dat laatste
+is uit de broncode afgeleid en niet met een Bubble-thema geprobeerd.
 
 Een sensor die er niet is of niet werkt, blijft in beeld met een melding.
 Verbergen zou juist het probleem verbergen.

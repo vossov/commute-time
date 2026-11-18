@@ -62,13 +62,25 @@ def staten() -> dict:
             route_bij_vertrek=bij_vertrek, punten=PUNTEN, waze=waze,
             marge_min=5, stoptijd_min=0,
         ),
+        # een route waar geen aankomsttijd bij is ingevuld: dan is er geen
+        # vertrektijd en is de rijtijd het hoofdgetal op de kaart
+        "zonder_doel": uitvoer.berekend(
+            route="Naar de sportschool", nu=NU,
+            plan=rooster.Dagplan(van=plan.van, tot=plan.tot, aankomst=None),
+            oordeel=rooster.beoordeel(
+                nu=NU, doel=None, reistijd_nu_s=routes[0]["reistijd_s"],
+                stoptijd_s=0, vertrek_tomtom=None,
+            ),
+            routes=routes, route_bij_vertrek=None, punten=PUNTEN, waze=waze,
+            marge_min=5, stoptijd_min=0,
+        ),
         "buiten_venster": uitvoer.buiten_venster(
             "Naar werk", datetime(2026, 11, 17, 18, 0, tzinfo=TZ),
             rooster.volgende_begin(ROOSTER, datetime(2026, 11, 17, 18, 0, tzinfo=TZ)),
         ),
         "fout": uitvoer.fout(
             "Naar werk", NU, plan,
-            "TomTom weigert de sleutel voor de Routing API (routes berekenen) (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op",
+            "TomTom weigert de sleutel voor de Routing API (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op",
         ),
     }
 

@@ -88,8 +88,8 @@ custom_components/time_to_leave/
   www/time-to-leave-card.js
 ```
 
-- **De sensor rekent, de kaart toont.** De kaart telt alleen "over 18 min"
-  zelf af vanaf `vertrek`; verder leest hij wat de sensor zet.
+- **De sensor rekent, de kaart toont.** De kaart zegt alleen zelf "nu" zodra
+  `vertrek` voorbij is; verder leest hij wat de sensor zet.
 - Per ronde één verzoek (vertrek nu: reistijd, wegen, files, alternatieven)
   en, als er vandaag een aankomsttijd is die nog niet voorbij is, een
   tweede met `arriveAt` = aankomsttijd min marge. Die geeft de
@@ -146,6 +146,53 @@ attribuut belandt.
 
 **Een waarschuwingskleur nooit als tekstkleur** (zie Skywatch): de stip en
 de rand dragen de kleur, de tekst blijft `--primary-text-color`.
+
+## De kaart
+
+- **Hoofdgetal** (`weergave()`): met een aankomsttijd de vertrektijd
+  ("Vertrek 07:52", of "Vertrek nu"), zonder aankomsttijd de rijtijd ("34
+  min"). Geen aftelling "over x min": de eigenaar wilde dat niet (18
+  november 2026).
+- **De ingevoerde aankomsttijd en marge staan er niet**, tenzij de
+  kaartoptie `target` aan staat (standaard uit), op de tegel én in het
+  venster. De aankomst "als je nu vertrekt" is iets anders (afgeleid, niet
+  ingevoerd) en blijft in het venster staan.
+- **De aankomsttijd is optioneel**: per weekdag, standaard leeg. In de
+  frontend van Home Assistant (dev, bekeken 18 november 2026) is de
+  tijdkiezer `clearable` en blijft een leeggemaakt veld bewust `undefined`;
+  `_lees_rooster` maakt er `None` van. Niet in een draaiende Home Assistant
+  beproefd.
+- **Scheiding in een regel** is een vaste spatie + punt (`PUNT`), zodat een
+  omslaande regel de punt bij het woord ervoor laat.
+
+### De Bubble-stijl is nagebouwd naar de bron
+
+De eerste versie (v0.1.0) was uit het hoofd gemaakt en leek er niet op ("ziet
+er niet uit als een bubble kaart", 18 november 2026). Daarna is
+`dist/bubble-card.js` van github.com/Clooos/Bubble-Card nagelezen (main; de
+API-boomlijst gaf een 403, de raw-bestanden niet) en naast de afbeeldingen in
+de README gelegd. Wat ertoe doet:
+
+- **De pil is de secundaire achtergrond, het icoonrondje de kaartachtergrond.**
+  Pil: `--bubble-main-background-color` → `--background-color-2` →
+  `--secondary-background-color`. Rondje en waardepillen:
+  `--bubble-icon-background-color` → `--bubble-secondary-background-color` →
+  `--card-background-color`. Omgekeerd aan een gewone kaart; met één kleur
+  voor beide verdwijnt de pil.
+- 50 px hoog, radius 28 px; rondje 38 px met 6 px marge; naam 13 px/600,
+  status 12 px op 70%; waarden als sub-knoppen van 36 px, radius 18 px.
+- De pop-up is een bladzijde onderaan; achtergrond
+  `--bubble-pop-up-main-background-color` → … → `--secondary-background-color`.
+- Het icoonrondje krijgt de kleur van de vertraging (glyph in die kleur, het
+  rondje op 20%), zoals Bubble Card een actief icoon inkleurt.
+
+**Niet geprobeerd:** met een geïnstalleerd Bubble-thema dat `--bubble-*`
+instelt, en in Home Assistant zelf. Dat een thema de kaart volgt is uit de
+terugvalketens afgeleid. Gerenderd is in Chromium, donker en licht, met een
+eigen `ha-card` (achtergrond op `:host`) en `ha-icon` (shadow root, MDI-paden).
+**Pas op bij zo'n testpagina:** zet `display` van `ha-icon` niet inline, want
+dan wint dat van `.waze ha-icon { display: none }`; de echte `ha-icon` doet dat
+niet. Zet het op `:host`.
 
 ## Bronnen
 

@@ -17,12 +17,18 @@
  *   show      'window' (standaard): een route staat er alleen binnen zijn
  *             venster, en zonder route in beeld verbergt de kaart zich.
  *             'always': altijd, met buiten het venster wanneer hij terugkomt
+ *   target    false (standaard): de ingevoerde aankomsttijd en marge staan er
+ *             niet. true toont ze, onder de naam en in het venster
  *   details   true (standaard) opent bij een tik het detailvenster
  *   waze      true (standaard) zet een knop "Rijden met Waze" bij de route
  *
- * De kaart rekent niets uit wat de sensor niet levert. Alleen "over 18 min"
- * telt hij zelf af, vanaf de vertrektijd die de sensor gaf; tussen twee
- * rondes van de sensor zou dat anders stil blijven staan.
+ * Bovenaan staat met een aankomsttijd de vertrektijd ("Vertrek 07:52"), en
+ * zonder aankomsttijd de rijtijd ("34 min"). Een aankomsttijd invullen is
+ * optioneel en gaat per weekdag in het rooster van de route.
+ *
+ * De kaart rekent niets uit wat de sensor niet levert. Alleen "nu" zegt hij
+ * zelf zodra de vertrektijd voorbij is, ook als de sensor nog niet ververst
+ * heeft.
  *
  * Ondergrens: Chrome 61 (oude WebViews op wandpanelen). Geen ?. of ??, geen
  * flexbox-gap, geen catch zonder variabele. tests/floor.mjs controleert dat.
@@ -33,7 +39,7 @@
  * omdat dit bestand statisch is: Home Assistant meldt de versie van de
  * Python-kant, en een browser kan een oudere kaart uit de cache draaien.
  * Het nummer staat in de console en onder in het bewerkscherm. */
-const VERSIE = '0.1.3';
+const VERSIE = '0.2.0';
 
 const VORMGEVING = [
   { value: 'default', label: 'Standaard (eigen opmaak)' },
@@ -108,6 +114,8 @@ function normaliseer(config) {
     title: typeof g.title === 'string' ? g.title : '',
     design: VORMGEVING_SLEUTELS.indexOf(String(g.design)) >= 0 ? String(g.design) : 'default',
     show: g.show === 'always' ? 'always' : 'window',
+    // standaard uit: alleen een uitdrukkelijk true telt
+    target: g.target === true,
     details: g.details !== false,
     waze: g.waze !== false,
   };
@@ -124,9 +132,14 @@ function drukte(a) {
   return 'rustig';
 }
 
+/* De scheiding tussen delen van een regel. Een vaste spatie vóór de punt, zodat
+ * een regel die omslaat de punt bij het woord ervoor laat en niet met een los
+ * "· 3 min file" begint. */
+const PUNT = ' · ';
+
 /** `via A12 · A27`, of leeg. */
 function wegen(a) {
-  return Array.isArray(a.via) && a.via.length ? 'via ' + a.via.map(String).join(' · ') : '';
+  return Array.isArray(a.via) && a.via.length ? 'via ' + a.via.map(String).join(PUNT) : '';
 }
 
 /** Minuten tot een ISO-tijdstip, naar boven afgerond; null zonder tijdstip. */
@@ -136,58 +149,78 @@ function minutenTot(iso, nuMs) {
   return Math.ceil((t - nuMs) / 60000);
 }
 
-/** Wat de route op dit moment moet zeggen: de regel op de tegel, en hoe
- * zwaar hij moet wegen ('normaal', 'let_op', 'te_laat', 'fout'). */
-function statusRegel(a, nuMs) {
+/** Hoeveel minuten file er in totaal op de route staat. */
+function fileMinuten(a) {
+  const files = Array.isArray(a.files) ? a.files : [];
+  return files.reduce(function (som, f) { return som + (getal(f.vertraging_min) || 0); }, 0);
+}
+
+/** Wat een route nu zegt: het getal bovenaan en de tekst eronder.
+ *
+ *   hoofd  { label, waarde }, of null. Met een aankomsttijd is het de
+ *          vertrektijd ("Vertrek 07:52", of "Vertrek nu"); zonder
+ *          aankomsttijd de rijtijd ("34 min"). Een aftelling ("over 18 min")
+ *          staat er niet: die hoeft niet, en de vertrektijd zegt het al.
+ *   regel  de rest die ertoe doet: hoe lang je rijdt, via welke wegen, hoeveel
+ *          file. De ingevoerde aankomsttijd en marge staan er alleen bij als
+ *          config.target aan staat; de aankomst die volgt als je nu vertrekt
+ *          staat alleen in het venster.
+ *   soort  hoe zwaar het weegt: 'normaal', 'let_op', 'te_laat' of 'fout'.
+ *
+ * Wat de kaart zelf doet is alleen "nu" zeggen zodra de vertrektijd voorbij
+ * is, ook als de sensor nog niet ververst heeft.
+ */
+function weergave(a, nuMs, config) {
   const status = String(a.status || '');
   if (status === 'fout') {
-    return { tekst: a.fout ? String(a.fout) : 'TomTom gaf geen antwoord', soort: 'fout' };
+    return { hoofd: null, soort: 'fout', regel: a.fout ? String(a.fout) : 'TomTom gaf geen antwoord' };
   }
   if (status === 'buiten_venster') {
     return {
-      tekst: a.volgend_venster_tekst
+      hoofd: null,
+      soort: 'normaal',
+      regel: a.volgend_venster_tekst
         ? 'Weer in beeld ' + a.volgend_venster_tekst
         : 'Geen venster ingesteld in het rooster',
-      soort: 'normaal',
     };
   }
-  if (status === 'vertrek_om') {
-    const over = minutenTot(a.vertrek, nuMs);
-    // de sensor zei "nog niet", maar sindsdien is de tijd verstreken: dan
-    // is het nu, ook al heeft de volgende ronde dat nog niet bevestigd
-    if (over !== null && over <= 0) return { tekst: 'Vertrek nu', soort: 'let_op' };
-    return {
-      tekst: 'Vertrek om ' + a.vertrek_hhmm + (over !== null ? ' · over ' + minuten(over) : ''),
-      soort: 'normaal',
-    };
-  }
-  if (status === 'vertrek_nu') {
-    return { tekst: 'Vertrek nu · aankomst ' + a.aankomst_hhmm, soort: 'let_op' };
-  }
-  if (status === 'te_laat') {
-    return {
-      tekst: 'Vertrek nu · aankomst ' + a.aankomst_hhmm + ' · ' + a.te_laat_min + ' min te laat',
-      soort: 'te_laat',
-    };
-  }
-  if (status === 'geen_doel' || status === 'doel_voorbij') {
-    return { tekst: 'Aankomst ' + a.aankomst_hhmm + ' als je nu vertrekt', soort: 'normaal' };
-  }
-  return { tekst: '', soort: 'normaal' };
-}
 
-/** De tweede regel: voor wanneer, met welke marge, en via welke wegen. */
-function tweedeRegel(a) {
-  const delen = [];
-  if (a.doel_hhmm && a.status !== 'doel_voorbij' && a.status !== 'buiten_venster') {
-    delen.push('voor ' + a.doel_hhmm + (getal(a.marge_min) ? ', ' + a.marge_min + ' min marge' : ''));
+  const reistijd = minuten(a.reistijd_min);
+  let hoofd = null;
+  let soort = 'normaal';
+  let kop = '';
+  if (status === 'vertrek_om' || status === 'vertrek_nu' || status === 'te_laat') {
+    let nu = status !== 'vertrek_om';
+    if (!nu) {
+      // de sensor zei "nog niet", maar sindsdien is de tijd verstreken: dan
+      // is het nu, ook al heeft de volgende ronde dat nog niet bevestigd
+      const over = minutenTot(a.vertrek, nuMs);
+      nu = over !== null && over <= 0;
+    }
+    const waarde = nu ? 'nu' : String(a.vertrek_hhmm || '');
+    if (waarde) hoofd = { label: 'Vertrek', waarde: waarde };
+    if (nu) soort = 'let_op';
+    if (status === 'te_laat') {
+      soort = 'te_laat';
+      kop = getal(a.te_laat_min) !== null ? a.te_laat_min + ' min te laat' : 'Te laat';
+    }
   }
+  // zonder aankomsttijd (of zonder vertrektijd) is de rijtijd het hoofdgetal
+  if (!hoofd && reistijd) hoofd = { label: '', waarde: reistijd };
+
+  const delen = [];
+  if (kop) delen.push(kop);
+  if (hoofd && hoofd.label && reistijd) delen.push(reistijd + ' rijden');
   const via = wegen(a);
   if (via) delen.push(via);
-  const files = Array.isArray(a.files) ? a.files : [];
-  const vertraging = files.reduce(function (som, f) { return som + (getal(f.vertraging_min) || 0); }, 0);
-  if (vertraging > 0) delen.push(minuten(vertraging) + ' file');
-  return delen.join(' · ');
+  const file = fileMinuten(a);
+  if (file > 0) delen.push(minuten(file) + ' file');
+  if (config && config.target && a.doel_hhmm && status !== 'doel_voorbij') {
+    delen.push('voor ' + a.doel_hhmm + (getal(a.marge_min) ? ', ' + a.marge_min + ' min marge' : ''));
+  }
+  if (!delen.length) delen.push('Rijtijd met het verkeer van nu');
+
+  return { hoofd: hoofd, soort: soort, regel: delen.join(PUNT) };
 }
 
 /** Of een route op de kaart hoort. Een sensor die er niet is of niet werkt
@@ -222,32 +255,40 @@ const STIJL = `
     display: flex; align-items: center; justify-content: center;
     background: rgba(127, 127, 127, .16);
   }
+  /* het stipje: groen, oranje of rood naar de vertraging die TomTom meldt */
   .stip {
     position: absolute; right: -1px; bottom: -1px; width: 12px; height: 12px;
     border-radius: 50%; border: 2px solid var(--card-background-color, #1c1c1c);
   }
+  .t-rustig .stip { background: ${KLEUR.rustig}; }
+  .t-druk .stip { background: ${KLEUR.druk}; }
+  .t-file .stip { background: ${KLEUR.file}; }
+  .t-onbekend .stip { display: none; }
   .tekst { flex: 1; min-width: 0; }
   .naam, .regel2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .naam { font-size: 15px; font-weight: 700; }
-  /* de statusregel is waar het om gaat: liever twee regels dan afgekapt.
+  /* de regel onder de naam: liever twee regels dan afgekapt.
      -webkit-line-clamp kent Chrome al lang, ook op oude WebViews */
   .regel {
-    font-size: 13.5px; margin-top: 1px; overflow: hidden;
+    font-size: 13px; margin-top: 1px; overflow: hidden; opacity: .75;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   }
+  .regel.let_op, .regel.te_laat, .regel.fout { opacity: 1; }
   .regel.let_op, .regel.te_laat { font-weight: 700; }
   .regel2 { font-size: 12.5px; opacity: .65; margin-top: 1px; }
-  /* reistijd en de Waze-knop onder elkaar: naast elkaar namen ze zoveel
-     breedte dat de vertrektijd werd afgekapt */
-  .rechts { flex: none; display: flex; flex-direction: column; align-items: flex-end; }
-  .rechts > * + * { margin-top: 4px; }
-  .tijd { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .tijd .eenheid { font-size: 12px; font-weight: 600; opacity: .7; margin-left: 2px; }
+  .rechts { flex: none; display: flex; align-items: center; }
+  .rechts > * + * { margin-left: 10px; }
+  /* het hoofdgetal: de vertrektijd, of zonder aankomsttijd de rijtijd */
+  .hoofd { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+  .hoofd .lab { font-size: 11px; opacity: .65; }
+  .hoofd .waarde { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .waze {
     display: inline-block; padding: 3px 10px; border-radius: 12px;
     border: 1px solid var(--divider-color, rgba(127, 127, 127, .45));
     color: inherit; text-decoration: none; font-size: 12px; font-weight: 700; white-space: nowrap;
   }
+  /* het icoon is voor de Bubble-stijl; elders staat het woord er */
+  .waze ha-icon { display: none; }
   .melding { font-size: 13px; opacity: .8; padding: 4px 2px; }
 
   dialog {
@@ -272,7 +313,6 @@ const STIJL = `
   li > * + * { margin-left: 8px; }
   li .l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   li .r { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
-  li .waze { margin-top: 0; }
   .voet { margin-top: 16px; font-size: 12px; opacity: .6; }
   .knoppen { margin-top: 14px; }
   .knoppen .waze { font-size: 13px; padding: 6px 14px; }
@@ -291,31 +331,98 @@ const STIJL = `
   }
 
   /* ── vormgeving: Bubble-stijl ───────────────────────────────────── */
-  /* Nagebouwd, niet overgenomen: Bubble Card is er niet voor nodig. Wat de
-     stijl herkenbaar maakt: sterk afgerond, elke route een eigen bel met
-     het icoon in een rondje, de reistijd in een pilletje, en een venster
-     dat onderaan het scherm plakt. Zoals in cycling-next-race. */
+  /* Nagebouwd naar Bubble Card zelf, nagelezen in dist/bubble-card.js op
+     18 november 2026; de kaart is er niet voor nodig en wordt niet gebruikt.
+     Wat de stijl maakt, in die volgorde:
+       - de pil is de secundaire achtergrond en het icoonrondje daarin de
+         kaartachtergrond. Dat is omgekeerd aan een gewone kaart, en
+         daardoor ziet de pil er als een pil uit;
+       - 50 px hoog, afgerond met de helft van de rijhoogte (28 px);
+       - naam 13 px vet, status 12 px op 70% dekking;
+       - waarden rechts als pillen van 36 px hoog (sub-knoppen);
+       - dezelfde terugvalketens als Bubble Card, dus een thema dat
+         --bubble-main-background-color en de rest instelt, werkt hier ook.
+     Het icoonrondje krijgt de kleur van de vertraging, zoals Bubble Card een
+     actief icoon inkleurt: de glyph in die kleur en het rondje op 20%. */
   ha-card.thema-bubble {
-    border-radius: 32px; box-shadow: none; border: none; padding: 10px;
-    background: none;
+    background: none; border: none; box-shadow: none; border-radius: 0;
+    padding: 0; overflow: visible;
   }
-  .thema-bubble .kaartkop { padding: 2px 10px 8px; }
+  .thema-bubble .kaartkop {
+    font-size: 13px; font-weight: 600; padding: 0 12px 6px; opacity: .8;
+    color: var(--primary-text-color, #e8eef4);
+  }
   .thema-bubble .routes > * + * { margin-top: 8px; }
   .thema-bubble .route {
-    border-radius: 32px; padding: 6px 8px 6px 6px;
-    background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
+    position: relative; box-sizing: border-box; min-height: 50px;
+    padding-right: 8px;
+    border-radius: var(--bubble-card-type-border-radius, var(--bubble-border-radius, 28px));
+    background-color: var(--bubble-card-type-main-background-color, var(--bubble-main-background-color, var(--background-color-2, var(--secondary-background-color, #202020))));
+    box-shadow: var(--bubble-card-type-box-shadow, var(--bubble-box-shadow, none));
   }
-  .thema-bubble .icoon { width: 42px; height: 42px; background: var(--secondary-background-color, rgba(127, 127, 127, .18)); }
-  .thema-bubble .tijd {
-    display: inline-block; padding: 4px 12px; border-radius: 18px; font-size: 16px;
-    background: var(--secondary-background-color, rgba(127, 127, 127, .18));
+  .thema-bubble .route > * + * { margin-left: 0; }
+  .thema-bubble .icoon {
+    width: 38px; height: 38px; margin: 6px; overflow: hidden;
+    border-radius: var(--bubble-card-type-icon-border-radius, var(--bubble-icon-border-radius, var(--bubble-border-radius, 50%)));
+    background-color: var(--bubble-card-type-icon-background-color, var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, #1c1c1c))));
+    color: var(--primary-text-color, #e8eef4);
   }
-  .thema-bubble .waze { border-radius: 18px; }
+  .thema-bubble .icoon::before {
+    content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+    background: currentColor; opacity: 0;
+  }
+  .thema-bubble .icoon ha-icon { position: relative; z-index: 1; --mdc-icon-size: 24px; }
+  .thema-bubble .stip { display: none; }
+  .thema-bubble .t-rustig .icoon { color: ${KLEUR.rustig}; }
+  .thema-bubble .t-druk .icoon { color: ${KLEUR.druk}; }
+  .thema-bubble .t-file .icoon { color: ${KLEUR.file}; }
+  .thema-bubble .t-rustig .icoon::before,
+  .thema-bubble .t-druk .icoon::before,
+  .thema-bubble .t-file .icoon::before { opacity: .2; }
+  .thema-bubble .tekst { margin: 0 12px 0 4px; }
+  .thema-bubble .naam { font-size: 13px; font-weight: 600; line-height: 18px; }
+  .thema-bubble .regel { font-size: 12px; font-weight: normal; line-height: 18px; margin-top: 0; opacity: .7; }
+  .thema-bubble .regel.let_op, .thema-bubble .regel.te_laat, .thema-bubble .regel.fout { opacity: 1; }
+  .thema-bubble .rechts > * + * { margin-left: 8px; }
+  .thema-bubble .hoofd {
+    box-sizing: border-box; flex-direction: row; align-items: center; height: 36px;
+    padding: 0 12px; line-height: 1;
+    border-radius: var(--bubble-sub-button-border-radius, var(--bubble-border-radius, 18px));
+    background-color: var(--bubble-sub-button-background-color, var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, #1c1c1c))));
+  }
+  .thema-bubble .hoofd .lab { margin-right: 6px; font-size: 12px; }
+  .thema-bubble .hoofd .waarde { font-size: 14px; }
+  .thema-bubble .rechts .waze {
+    box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; padding: 0; border: none;
+    border-radius: var(--bubble-sub-button-border-radius, var(--bubble-border-radius, 18px));
+    background-color: var(--bubble-sub-button-background-color, var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, #1c1c1c))));
+  }
+  .thema-bubble .rechts .waze ha-icon { display: block; --mdc-icon-size: 20px; }
+  .thema-bubble .rechts .waze .wtekst { display: none; }
   dialog.thema-bubble {
-    border-radius: 32px 32px 0 0; width: 100%; max-width: 640px;
-    /* onderaan plakken. Oudere WebViews plaatsen een modale dialog zelf in
-       het midden; dan klopt alleen de plek niet, de kaart werkt gewoon. */
+    width: 100%; max-width: 640px;
+    border-radius: var(--bubble-pop-up-border-radius, var(--bubble-border-radius, 42px)) var(--bubble-pop-up-border-radius, var(--bubble-border-radius, 42px)) 0 0;
+    background-color: var(--bubble-pop-up-main-background-color, var(--bubble-pop-up-background-color, var(--bubble-secondary-background-color, var(--background-color, var(--secondary-background-color, #202020)))));
+    /* onderaan plakken, zoals de pop-up van Bubble Card. Oudere WebViews
+       plaatsen een modale dialog nog zelf; daar blijft hij in het midden
+       staan: alleen de plaats klopt dan niet, de kaart werkt gewoon. */
     margin: auto auto 0;
+  }
+  .thema-bubble .kop { padding: 14px 18px 6px; }
+  .thema-bubble .kop .sluit {
+    width: 36px; height: 36px; padding: 0; border-radius: 50%; font-size: 20px;
+    background-color: var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, #1c1c1c)));
+  }
+  .thema-bubble section {
+    padding: 12px 16px; border-radius: 24px;
+    background-color: var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, #1c1c1c)));
+  }
+  .thema-bubble .knoppen .waze {
+    box-sizing: border-box; height: 36px; padding: 0 16px; border: none;
+    display: inline-flex; align-items: center;
+    border-radius: var(--bubble-sub-button-border-radius, var(--bubble-border-radius, 18px));
+    background-color: var(--bubble-icon-background-color, var(--bubble-secondary-background-color, var(--card-background-color, #1c1c1c)));
   }
 `;
 
@@ -323,8 +430,10 @@ const STIJL = `
 
 function wazeKnop(url, tekst) {
   if (!url || String(url).indexOf('https://waze.com/ul?') !== 0) return '';
-  return '<a class="waze" data-waze="1" href="' + esc(url) + '" target="_blank" rel="noopener">' +
-    esc(tekst || 'Rijden met Waze') + '</a>';
+  const naam = tekst || 'Rijden met Waze';
+  return '<a class="waze" data-waze="1" href="' + esc(url) + '" target="_blank" rel="noopener"' +
+    ' title="Rijden met Waze" aria-label="Rijden met Waze">' +
+    '<ha-icon icon="mdi:navigation-variant"></ha-icon><span class="wtekst">' + esc(naam) + '</span></a>';
 }
 
 function routeRij(id, st, config, nuMs) {
@@ -340,25 +449,22 @@ function routeRij(id, st, config, nuMs) {
       '</div><div class="regel2">' + (s === 'unavailable' ? 'niet beschikbaar' : 'nog onbekend') +
       ' — kijk in het logboek van Home Assistant op time_to_leave</div></div></div>';
   }
-  const regel = statusRegel(a, nuMs);
-  const druk = drukte(a);
-  let stipKleur = KLEUR[druk];
-  if (regel.soort === 'te_laat') stipKleur = KLEUR.file;
-  if (regel.soort === 'fout') stipKleur = KLEUR.druk;
-  const tijd = getal(a.reistijd_min) !== null
-    ? '<div class="tijd">' + Math.round(a.reistijd_min) + '<span class="eenheid">min</span></div>'
+  const w = weergave(a, nuMs, config);
+  // de kleur van het stipje (en in de Bubble-stijl van het icoon)
+  let toon = drukte(a);
+  if (w.soort === 'te_laat') toon = 'file';
+  if (w.soort === 'fout') toon = 'druk';
+  const hoofd = w.hoofd
+    ? '<div class="hoofd">' + (w.hoofd.label ? '<span class="lab">' + esc(w.hoofd.label) + '</span>' : '') +
+      '<span class="waarde">' + esc(w.hoofd.waarde) + '</span></div>'
     : '';
   // kort op de tegel; in het venster staat "Rijden met Waze" voluit
   const knop = config.waze && a.in_venster ? wazeKnop(a.waze_url, 'Waze') : '';
-  return '<div class="route' + klik + '" data-route="' + esc(id) + '">' +
-    '<div class="icoon"><ha-icon icon="mdi:car-clock"></ha-icon>' +
-    (stipKleur !== 'transparent' ? '<span class="stip" style="background:' + stipKleur + '"></span>' : '') +
-    '</div>' +
+  return '<div class="route' + klik + ' t-' + toon + '" data-route="' + esc(id) + '">' +
+    '<div class="icoon"><ha-icon icon="mdi:car-clock"></ha-icon><span class="stip"></span></div>' +
     '<div class="tekst"><div class="naam">' + esc(a.route || id) + '</div>' +
-    '<div class="regel ' + regel.soort + '">' + esc(regel.tekst) + '</div>' +
-    (tweedeRegel(a) ? '<div class="regel2">' + esc(tweedeRegel(a)) + '</div>' : '') +
-    '</div>' +
-    (tijd || knop ? '<div class="rechts">' + tijd + knop + '</div>' : '') +
+    '<div class="regel ' + w.soort + '">' + esc(w.regel) + '</div></div>' +
+    (hoofd || knop ? '<div class="rechts">' + hoofd + knop + '</div>' : '') +
     '</div>';
 }
 
@@ -369,11 +475,16 @@ function feit(links, rechts) {
 
 /** De inhoud van het detailvenster voor één route. */
 function detail(a, nuMs, config) {
-  const regel = statusRegel(a, nuMs);
+  const toonDoel = Boolean(config && config.target);
+  const w = weergave(a, nuMs, config);
   const delen = [];
-  delen.push('<div class="groot">' + esc(regel.tekst) + '</div>');
-  const sub = tweedeRegel(a);
-  if (sub) delen.push('<div class="sub">' + esc(sub) + '</div>');
+  if (w.hoofd) {
+    delen.push('<div class="groot">' +
+      esc(w.hoofd.label ? w.hoofd.label + ' ' + w.hoofd.waarde : w.hoofd.waarde + ' rijden') + '</div>');
+    delen.push('<div class="sub">' + esc(w.regel) + '</div>');
+  } else {
+    delen.push('<div class="groot">' + esc(w.regel) + '</div>');
+  }
 
   if (a.status === 'fout' || a.status === 'buiten_venster') {
     if (a.venster_van && a.venster_tot) {
@@ -395,14 +506,15 @@ function detail(a, nuMs, config) {
   ].join('');
   delen.push('<section><h3>Reistijd</h3><ul>' + reistijd + '</ul></section>');
 
+  // de ingevoerde aankomsttijd en marge alleen als de kaart dat vraagt
   if (a.doel_hhmm) {
     const plan = [
-      feit('Aankomen om', a.doel_hhmm),
-      feit('Marge', getal(a.marge_min) !== null ? a.marge_min + ' min' : ''),
+      toonDoel ? feit('Aankomen om', a.doel_hhmm) : '',
+      toonDoel && getal(a.marge_min) !== null ? feit('Marge', a.marge_min + ' min') : '',
       getal(a.stops) ? feit('Stoptijd', a.stops + ' × ' + a.stoptijd_min + ' min') : '',
       feit('Vertrekken om', a.vertrek_hhmm || ''),
     ].join('');
-    delen.push('<section><h3>Op tijd zijn</h3><ul>' + plan + '</ul></section>');
+    if (plan) delen.push('<section><h3>' + (toonDoel ? 'Op tijd zijn' : 'Vertrek') + '</h3><ul>' + plan + '</ul></section>');
   }
 
   if (wegen(a)) delen.push('<section><h3>Route</h3><ul><li><span class="l">' + esc(wegen(a)) + '</span></li></ul></section>');
@@ -422,7 +534,7 @@ function detail(a, nuMs, config) {
   if (Array.isArray(a.etappes) && a.etappes.length) {
     const etappes = a.etappes.map(function (e) {
       return '<li><span class="l">' + esc(e.van) + ' → ' + esc(e.naar) + '</span><span class="r">' +
-        esc(minuten(e.reistijd_min)) + '</span>' + (config.waze ? wazeKnop(e.waze_url, 'Waze') : '') + '</li>';
+        esc(minuten(e.reistijd_min)) + '</span>' + (config && config.waze ? wazeKnop(e.waze_url, 'Waze') : '') + '</li>';
     }).join('');
     delen.push('<section><h3>Etappes</h3><ul>' + etappes + '</ul></section>');
   }
@@ -446,7 +558,7 @@ function detail(a, nuMs, config) {
     delen.push('<section><h3>Adressen zoals gevonden</h3><ul>' + punten + '</ul></section>');
   }
 
-  if (config.waze && a.waze_url) delen.push('<div class="knoppen">' + wazeKnop(a.waze_url) + '</div>');
+  if (config && config.waze && a.waze_url) delen.push('<div class="knoppen">' + wazeKnop(a.waze_url) + '</div>');
   delen.push('<div class="voet">' + (a.bijgewerkt_hhmm ? 'Bijgewerkt ' + esc(a.bijgewerkt_hhmm) + ' · ' : '') +
     'bron: ' + esc(a.bron || 'TomTom') + ' · kaart v' + VERSIE + '</div>');
   return delen.join('');
@@ -688,6 +800,12 @@ const VELDEN = [
     selector: { select: { mode: 'dropdown', options: TONEN } },
   },
   {
+    name: 'target',
+    label: 'Aankomsttijd en marge tonen',
+    uitleg: 'De aankomsttijd en marge die je zelf hebt ingevoerd. Uit: alleen de vertrektijd, of de rijtijd als je geen aankomsttijd hebt ingesteld.',
+    selector: { boolean: {} },
+  },
+  {
     name: 'details',
     label: 'Detailvenster bij aantikken',
     uitleg: 'Files, andere routes, etappes en de adressen zoals TomTom ze vond.',
@@ -748,6 +866,7 @@ class TimeToLeaveCardEditor extends HTMLElement {
       entities: config.entities,
       design: config.design,
       show: config.show,
+      target: config.target,
       details: config.details,
       waze: config.waze,
     };
@@ -798,6 +917,8 @@ class TimeToLeaveCardEditor extends HTMLElement {
       '<input type="text" name="title" value="' + esc(c.title) + '"></label>' +
       '<label>Vormgeving<select name="design">' + keuzes(VORMGEVING, c.design) + '</select></label>' +
       '<label>Tonen<select name="show">' + keuzes(TONEN, c.show) + '</select></label>' +
+      '<label class="schakel"><input type="checkbox" name="target"' + (c.target ? ' checked' : '') +
+      '>Aankomsttijd en marge tonen</label>' +
       '<label class="schakel"><input type="checkbox" name="details"' + (c.details ? ' checked' : '') +
       '>Detailvenster bij aantikken</label>' +
       '<label class="schakel"><input type="checkbox" name="waze"' + (c.waze ? ' checked' : '') +
@@ -810,6 +931,7 @@ class TimeToLeaveCardEditor extends HTMLElement {
         title: lees('title').value.trim(),
         design: lees('design').value,
         show: lees('show').value,
+        target: lees('target').checked,
         details: lees('details').checked,
         waze: lees('waze').checked,
       });
@@ -843,8 +965,8 @@ export {
   wegen,
   minuten,
   minutenTot,
-  statusRegel,
-  tweedeRegel,
+  fileMinuten,
+  weergave,
   zichtbaar,
   routeRij,
   detail,

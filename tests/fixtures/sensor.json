@@ -54,6 +54,61 @@
     "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-time-to-leave",
     "fout": null
   },
+  "zonder_doel": {
+    "route": "Naar de sportschool",
+    "bron": "TomTom",
+    "bijgewerkt": "2026-11-17T07:34:00+01:00",
+    "bijgewerkt_hhmm": "07:34",
+    "in_venster": true,
+    "status": "geen_doel",
+    "venster_van": "06:30",
+    "venster_tot": "09:30",
+    "doel": null,
+    "doel_hhmm": null,
+    "marge_min": 5,
+    "stops": 0,
+    "stoptijd_min": 0,
+    "vertrek": null,
+    "vertrek_hhmm": null,
+    "aankomst": "2026-11-17T07:36:41+01:00",
+    "aankomst_hhmm": "07:36",
+    "te_laat_min": null,
+    "reistijd_min": 3,
+    "reistijd_bij_vertrek_min": null,
+    "normaal_min": 3,
+    "vrij_min": 2,
+    "vertraging_min": 0,
+    "afstand_km": 1.1,
+    "via": [
+      "Sample Street",
+      "A10"
+    ],
+    "files": [
+      {
+        "soort": "file",
+        "weg": null,
+        "vertraging_min": 3,
+        "snelheid_kmh": 40,
+        "ernst": 1
+      }
+    ],
+    "alternatieven": [],
+    "etappes": [],
+    "punten": [
+      {
+        "invoer": "zone.home",
+        "gevonden": "Thuis",
+        "soort": "entiteit"
+      },
+      {
+        "invoer": "Stationsplein 1, Utrecht",
+        "gevonden": "Stationsplein 1, 3511 ED Utrecht",
+        "soort": "adres"
+      }
+    ],
+    "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-time-to-leave",
+    "fout": null
+  },
   "buiten_venster": {
     "route": "Naar werk",
     "bron": "TomTom",
@@ -73,6 +128,6 @@
     "status": "fout",
     "venster_van": "06:30",
     "venster_tot": "09:30",
-    "fout": "TomTom weigert de sleutel voor de Routing API (routes berekenen) (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op"
+    "fout": "TomTom weigert de sleutel voor de Routing API (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op"
   }
 }

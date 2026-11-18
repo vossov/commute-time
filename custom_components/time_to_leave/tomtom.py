@@ -197,9 +197,11 @@ def _tijdstip(waarde: Any) -> datetime | None:
     return moment if moment.tzinfo is not None else None
 
 
+# Kort: de melding staat op de kaart, en de uitleg wat de dienst doet staat in
+# het toevoegscherm. Tussen haakjes ging er een tweede (403) achter aan.
 DIENSTNAAM = {
-    "search": "de Search API (adressen opzoeken)",
-    "routing": "de Routing API (routes berekenen)",
+    "search": "de Search API",
+    "routing": "de Routing API",
 }
 
 
