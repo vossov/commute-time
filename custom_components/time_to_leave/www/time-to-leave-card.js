@@ -39,7 +39,7 @@
  * omdat dit bestand statisch is: Home Assistant meldt de versie van de
  * Python-kant, en een browser kan een oudere kaart uit de cache draaien.
  * Het nummer staat in de console en onder in het bewerkscherm. */
-const VERSIE = '0.2.0';
+const VERSIE = '0.2.1';
 
 const VORMGEVING = [
   { value: 'default', label: 'Standaard (eigen opmaak)' },
@@ -149,6 +149,13 @@ function minutenTot(iso, nuMs) {
   return Math.ceil((t - nuMs) / 60000);
 }
 
+/** Vaste spaties: een getal en zijn eenheid breken niet uit elkaar ("3 min
+ * file" liep anders over twee regels met "3" op de eerste). Alleen voor korte
+ * stukjes; een straatnaam moet wel kunnen afbreken. */
+function vast(tekst) {
+  return String(tekst).replace(/ /g, ' ');
+}
+
 /** Hoeveel minuten file er in totaal op de route staat. */
 function fileMinuten(a) {
   const files = Array.isArray(a.files) ? a.files : [];
@@ -202,7 +209,7 @@ function weergave(a, nuMs, config) {
     if (nu) soort = 'let_op';
     if (status === 'te_laat') {
       soort = 'te_laat';
-      kop = getal(a.te_laat_min) !== null ? a.te_laat_min + ' min te laat' : 'Te laat';
+      kop = getal(a.te_laat_min) !== null ? vast(a.te_laat_min + ' min te laat') : 'Te laat';
     }
   }
   // zonder aankomsttijd (of zonder vertrektijd) is de rijtijd het hoofdgetal
@@ -210,11 +217,11 @@ function weergave(a, nuMs, config) {
 
   const delen = [];
   if (kop) delen.push(kop);
-  if (hoofd && hoofd.label && reistijd) delen.push(reistijd + ' rijden');
+  if (hoofd && hoofd.label && reistijd) delen.push(vast(reistijd + ' rijden'));
   const via = wegen(a);
   if (via) delen.push(via);
   const file = fileMinuten(a);
-  if (file > 0) delen.push(minuten(file) + ' file');
+  if (file > 0) delen.push(vast(minuten(file) + ' file'));
   if (config && config.target && a.doel_hhmm && status !== 'doel_voorbij') {
     delen.push('voor ' + a.doel_hhmm + (getal(a.marge_min) ? ', ' + a.marge_min + ' min marge' : ''));
   }

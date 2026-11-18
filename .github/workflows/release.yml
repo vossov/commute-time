@@ -1,66 +1,129 @@
 name: Release
 
-# HACS toont de naam van een GitHub-release; zonder releases valt het terug
-# op de laatste commit en zie je een hash staan. Deze workflow maakt de
-# release zodra je een tag pusht:
+# HACS toont de naam en de notes van een GitHub-release. Zonder release valt het
+# terug op de laatste commit, en dan staat er in HACS een hash als "10f32a5" in
+# plaats van een versienummer.
 #
-#   git tag v0.1.0 && git push origin v0.1.0
+# Deze workflow maakt de release zelf, op GitHub, zodra een push naar main een
+# versie in manifest.json heeft die nog geen release heeft. Er hoeft dus niets
+# met de hand getagd of gepusht te worden, en dat kan ook niet vergeten worden:
+#
+#   1. ophogen:  version in manifest.json, VERSION in const.py, VERSIE in de kaart
+#   2. beschrijven:  een sectie bovenaan CHANGELOG.md
+#   3. naar main pushen. De rest gebeurt hier.
+#
+# De release-notes komen uit CHANGELOG.md (tools/release_notes.py). Ontbreken ze
+# of zijn ze leeg, dan faalt deze workflow en komt de versie niet uit.
+#
+# Opnieuw proberen kan altijd, onder Actions > Release > Run workflow: bestaat
+# de release al, dan doet hij niets.
 
 on:
   push:
-    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+    branches: [main]
+    paths:
+      - "custom_components/**"
+      - "CHANGELOG.md"
+      - "tools/release_notes.py"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag om een release voor te maken, bijvoorbeeld v0.1.0"
-        required: true
 
 permissions:
   contents: write
 
+# twee pushen vlak na elkaar mogen elkaar niet inhalen; de tweede wacht
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  MANIFEST: custom_components/time_to_leave/manifest.json
+  CONST: custom_components/time_to_leave/const.py
+  KAART: custom_components/time_to_leave/www/time-to-leave-card.js
+
 jobs:
   release:
-    name: Release aanmaken
+    name: Release maken als de versie er nog geen heeft
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Tag, manifest, const en kaart noemen dezelfde versie
-        # Anders installeert HACS "v0.2.0" terwijl Home Assistant 0.1.0
-        # meldt, of draait de browser een kaart met een ander nummer.
+      - name: Welke versie staat er?
+        id: versie
         run: |
-          tag="${{ github.event.inputs.tag || github.ref_name }}"
-          uit_tag="${tag#v}"
-          manifest=$(python3 -c "import json; print(json.load(open('custom_components/time_to_leave/manifest.json'))['version'])")
-          const=$(grep -oP '^VERSION = "\K[^"]+' custom_components/time_to_leave/const.py)
-          kaart=$(grep -oP "const VERSIE = '\K[^']+" custom_components/time_to_leave/www/time-to-leave-card.js)
-          echo "tag=$uit_tag manifest=$manifest const=$const kaart=$kaart"
-          for v in "$manifest" "$const" "$kaart"; do
-            if [ "$v" != "$uit_tag" ]; then
-              echo "::error::tag $tag hoort bij $uit_tag, maar manifest/const/kaart zeggen $manifest/$const/$kaart"
-              exit 1
-            fi
-          done
+          versie=$(python3 -c "import json,os; print(json.load(open(os.environ['MANIFEST']))['version'])")
+          echo "versie=$versie" >> "$GITHUB_OUTPUT"
+          echo "Versie in manifest.json: $versie"
+
+      - name: Heeft die versie al een release?
+        id: bestaat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${{ steps.versie.outputs.versie }}" > /dev/null 2>&1; then
+            echo "nieuw=nee" >> "$GITHUB_OUTPUT"
+            echo "::notice::v${{ steps.versie.outputs.versie }} heeft al een release; niets te doen"
+          else
+            echo "nieuw=ja" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: De drie versienummers moeten gelijk zijn
+        if: steps.bestaat.outputs.nieuw == 'ja'
+        # Anders installeert HACS de ene versie terwijl Home Assistant een
+        # andere meldt, en laadt de browser een kaart met een ander nummer.
+        run: |
+          v="${{ steps.versie.outputs.versie }}"
+          const=$(grep -oP '^VERSION = "\K[^"]+' "$CONST")
+          kaart=$(grep -oP "const VERSIE = '\K[^']+" "$KAART")
+          echo "manifest=$v const=$const kaart=$kaart"
+          if [ "$const" != "$v" ] || [ "$kaart" != "$v" ]; then
+            echo "::error::manifest.json ($v), const.py ($const) en de kaart ($kaart) noemen niet dezelfde versie"
+            exit 1
+          fi
+
+      - name: Staat er een beschrijving in CHANGELOG.md?
+        if: steps.bestaat.outputs.nieuw == 'ja'
+        run: python3 tools/release_notes.py "${{ steps.versie.outputs.versie }}" check
 
       - uses: actions/setup-python@v5
+        if: steps.bestaat.outputs.nieuw == 'ja'
         with:
           python-version: "3.12"
       - uses: actions/setup-node@v4
+        if: steps.bestaat.outputs.nieuw == 'ja'
         with:
           node-version: "20"
+
       - name: Tests
+        if: steps.bestaat.outputs.nieuw == 'ja'
         run: |
           python -m pip install --quiet pytest voluptuous
           python -m pytest tests -q
           node --test tests/kaart.test.mjs
           npm install --no-save --silent acorn@8
-          node tests/floor.mjs custom_components/time_to_leave/www/time-to-leave-card.js
+          node tests/floor.mjs "$KAART"
+
+      # Home Assistant's eigen controle op manifest, vertalingen en config
+      # flow. De oude release-workflow draaide die niet, dus een versie die
+      # hassfest afkeurde kon toch uitkomen.
+      - name: Hassfest
+        if: steps.bestaat.outputs.nieuw == 'ja'
+        uses: home-assistant/actions/hassfest@master
 
       - name: Release publiceren
+        if: steps.bestaat.outputs.nieuw == 'ja'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tag="${{ github.event.inputs.tag || github.ref_name }}"
-          gh release create "$tag" --title "$tag" --target "${{ github.sha }}" --generate-notes
+          v="${{ steps.versie.outputs.versie }}"
+          python3 tools/release_notes.py "$v" titel > titel.txt
+          python3 tools/release_notes.py "$v" tekst > notes.md
+          echo "Titel: $(cat titel.txt)"
+          # --target maakt de tag aan op precies deze commit, aan de kant van
+          # GitHub; er wordt geen tag gepusht
+          gh release create "v$v" \
+            --target "$GITHUB_SHA" \
+            --title "$(cat titel.txt)" \
+            --notes-file notes.md \
+            --latest
+          echo "::notice::v$v is uitgebracht"

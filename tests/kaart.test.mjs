@@ -30,6 +30,8 @@ const MET_DOEL = kaart.normaliseer({ target: true });
 // de scheiding in een regel: een vaste spatie vóór de punt, zodat een regel die
 // omslaat de punt bij het woord ervoor laat en niet met een los "· 3 min file" begint
 const PUNT = ' · ';
+// een getal en zijn eenheid breken niet uit elkaar: vaste spaties
+const V = (tekst) => tekst.replace(/ /g, ' ');
 
 function schoon(html, wat) {
   assert.ok(!/undefined|NaN|\[object Object\]/.test(html), `${wat} bevat undefined, NaN of [object Object]:\n${html}`);
@@ -81,19 +83,19 @@ test('vertrek nu en te laat', () => {
   const b = kaart.weergave(laat, NU, STANDAARD);
   assert.deepEqual(b.hoofd, { label: 'Vertrek', waarde: 'nu' });
   assert.equal(b.soort, 'te_laat');
-  assert.match(b.regel, /^11 min te laat/);
+  assert.equal(b.regel.split(PUNT)[0], V('11 min te laat'));
 });
 
 // ── wat eronder staat ───────────────────────────────────────────────
 
 test('onder de naam: rijtijd, wegen en file', () => {
   const w = kaart.weergave(staten.berekend, NU, STANDAARD);
-  assert.equal(w.regel, ['3 min rijden', 'via Sample Street', 'A10', '3 min file'].join(PUNT));
+  assert.equal(w.regel, [V('3 min rijden'), 'via Sample Street', 'A10', V('3 min file')].join(PUNT));
 });
 
 test('zonder aankomsttijd staat de rijtijd niet nog een keer onder de naam', () => {
   const w = kaart.weergave(staten.zonder_doel, NU, STANDAARD);
-  assert.equal(w.regel, ['via Sample Street', 'A10', '3 min file'].join(PUNT));
+  assert.equal(w.regel, ['via Sample Street', 'A10', V('3 min file')].join(PUNT));
 });
 
 test('een route zonder wegen of files zegt toch wat de rijtijd is', () => {

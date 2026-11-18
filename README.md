@@ -1,160 +1,74 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/banner.png" alt="Time to Leave: rijtijd en vertrektijd voor je vaste routes" width="100%">
+</p>
+
 # Time to Leave
 
-Home Assistant-integratie die voor je vaste routes laat zien hoe lang je
-onderweg bent, welke weg het snelst is, en **hoe laat je weg moet** om op
-tijd te zijn. Met een eigen dashboardkaart in drie vormgevingen, waaronder
-een Bubble Card-stijl.
+**Hoe lang rijd ik erover, en hoe laat moet ik weg?** Time to Leave zet per vaste route de reistijd met verkeer, de wegen en de files op je Home Assistant-dashboard, en rekent uit wanneer je moet vertrekken om op tijd te zijn.
 
-- Elke route heeft een eigen **startadres**, eventueel **tussenstops**
-  (eerst naar school, dan naar je werk) en een bestemming. Begin en eind
-  mogen een adres zijn, een coördinaat, of een entiteit: `zone.home`, of
-  `person.naam` om te vertrekken vanaf waar iemand nu is.
-- Per weekdag stel je in **wanneer de route in beeld is** en, **als je dat
-  wilt**, **hoe laat je er wilt zijn**. Met een aankomsttijd volgt daaruit
-  de vertrektijd, met een marge die je zelf kiest. Zonder aankomsttijd
-  toont de kaart hoe lang je erover doet.
-- Buiten dat venster wordt er niets opgevraagd en verbergt de kaart de
-  route.
-- Bovenaan de kaart staat **de vertrektijd** ("Vertrek 07:52"), of zonder
-  aankomsttijd **de rijtijd** ("34 min"). Eronder de wegen ("via A12 · A27")
-  en de files. Een tik opent de details: andere routes, etappes, en de
-  adressen zoals ze gevonden zijn. Een knop opent **Waze** om te gaan
-  rijden.
+[![Versie](https://img.shields.io/github/v/release/vossov/time-to-leave?style=for-the-badge&label=versie)](https://github.com/vossov/time-to-leave/releases) [![HACS](https://img.shields.io/badge/HACS-Custom-orange?style=for-the-badge)](https://hacs.xyz) [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.1%2B-blue?style=for-the-badge&logo=home-assistant)](https://www.home-assistant.io) [![Licentie](https://img.shields.io/github/license/vossov/time-to-leave?style=for-the-badge&label=licentie)](https://github.com/vossov/time-to-leave/blob/main/LICENSE)
 
-## Waarom TomTom en niet Waze
+[![Open Time to Leave in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vossov&repository=time-to-leave&category=integration)
 
-De vraag was "via Waze". Dat is onderzocht en bewust niet gedaan:
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/bubble.png" alt="De kaart in de Bubble-stijl, donker en licht" width="100%">
+  <br>
+  <sub>De kaart in de Bubble-stijl. Voorbeeldgegevens, in een browser getekend: geen schermafbeelding uit Home Assistant.</sub>
+</p>
 
-- Waze heeft **geen openbare routing-API**. Ook de ingebouwde Waze-integratie
-  van Home Assistant gebruikt een onofficiële weg (de bibliotheek
-  `pywaze`).
-- Sinds september 2026 weigert Waze zulke verzoeken met een 403. `pywaze`
-  1.2.3, sinds 2026.10 in Home Assistant, doet zich daarom voor als Chrome
-  (`curl_cffi`, `impersonate="chrome"`). Dat is in de broncode van het
-  pakket nagekeken.
-- De [gebruiksvoorwaarden van Waze](https://support.google.com/waze/answer/12373727?hl=en)
-  verbieden letterlijk *"use automated means to access Content from the
-  Service"* en *"You may not circumvent, modify, or disable any security or
-  protection measures."* De
-  [aangescherpte versie](https://support.google.com/waze/answer/17300833)
-  geldt sinds 1 augustus 2026.
-- `www.waze.com/robots.txt` sluit `/RoutingManager`, `/row-RoutingManager`
-  en `/live-map/api` uit voor elke bot.
+## Inhoud
 
-Dat is dezelfde soort omzeiling die in cycling-next-race voor CyclingFlash
-is afgewezen. TomTom heeft wél een officiële API, met een gratis sleutel,
-en kan zelf terugrekenen vanaf een aankomsttijd.
+**[`Wat je krijgt`](#wat-je-krijgt)**  **[`Installeren`](#installeren)**  **[`Een route instellen`](#een-route-instellen)**  **[`De kaart`](#de-kaart)**  **[`Sensoren`](#sensoren)**  **[`Goed om te weten`](#goed-om-te-weten)**  **[`Veelgestelde vragen`](#veelgestelde-vragen)**  **[`Versies en hulp`](#versies-en-hulp)**
 
-**Waze blijft wel in beeld voor het rijden zelf.** De knop op de kaart is
-een [Waze Deep Link](https://developers.google.com/waze/deeplinks), de
-officiële manier om Waze met een bestemming te openen. Er wordt niets bij
-Waze opgevraagd; jij tikt op een link.
+## Wat je krijgt
+
+- **Vertrektijd of rijtijd, bovenaan de kaart.** Met een aankomsttijd staat er *Vertrek 07:52*, zonder aankomsttijd *34 min*. Eronder de wegen en de files.
+- **Per route een eigen startadres**, tot drie tussenstops en een bestemming. Begin en eind mogen een adres zijn, een coördinaat, of een entiteit: `zone.home`, of `person.naam` om te vertrekken vanaf waar iemand nu is.
+- **Een rooster per weekdag.** Je zegt wanneer de route in beeld is en, als je dat wilt, hoe laat je er wilt zijn. Buiten dat venster wordt er niets opgevraagd.
+- **Een kaart in drie vormgevingen**, waaronder een Bubble Card-stijl, met een visuele editor. Een tik opent de details: andere routes, etappes en de files.
+- **Een knop om Waze te openen** met je bestemming, om te gaan rijden.
 
 ## Installeren
 
-**Via HACS** (aanbevolen): HACS → ⋮ → *Aangepaste repositories* →
-`https://github.com/vossov/time-to-leave`, categorie **Integratie**.
-Installeer *Time to Leave* en herstart Home Assistant.
+**Via HACS** (aanbevolen): klik op de knop bovenaan, of ga in HACS naar ⋮ → *Aangepaste repositories* en voeg `https://github.com/vossov/time-to-leave` toe als categorie **Integratie**. Download *Time to Leave* en herstart Home Assistant.
 
-**Met de hand**: kopieer `custom_components/time_to_leave` naar
-`config/custom_components/` en herstart.
+<details>
 
-De kaart hoort bij de integratie en wordt vanzelf geladen. Je hoeft geen
-resources toe te voegen, geen button-card en geen Bubble Card.
+<summary>Zonder HACS</summary>
 
-### Een TomTom-sleutel
+<br>
 
-De integratie roept precies twee diensten van TomTom aan, allebei in de
-klassieke versie (niet de nieuwere Orbis-varianten):
+Kopieer de map `custom_components/time_to_leave` naar `config/custom_components/` en herstart Home Assistant.
 
-| dienst | adres | waarvoor |
-|---|---|---|
-| Routing API | `api.tomtom.com/routing/1/calculateRoute` | reistijd met verkeer, wegen, files, en de vertrektijd voor een aankomsttijd |
-| Search API | `api.tomtom.com/search/2/geocode` | een ingetypt adres opzoeken. Niet nodig voor `zone.home`, een persoon of een coördinaat |
+</details>
 
-Zo stel je de sleutel in:
+De kaart hoort bij de integratie en wordt vanzelf geladen. Je hoeft geen resources toe te voegen, en Bubble Card of button-card is niet nodig. Na een update kan het nodig zijn de pagina te verversen.
 
-1. **Maak een account** op [developer.tomtom.com](https://developer.tomtom.com),
-   in het gratis Freemium-plan.
-2. **Maak een aparte sleutel** voor deze integratie. TomTom raadt zelf aan
-   om per toepassing een eigen sleutel te gebruiken
-   ([best practices](https://docs.tomtom.com/platform/documentation/api-best-practices/api-key-management-best-practices)).
-   Lekt hij uit, dan raakt dat alleen dit.
-3. **Zet de producten aan die TomTom vraagt, en zoek daarna het minimum.**
-   Welke producten dat precies zijn, is **niet vastgesteld**. In de eerste
-   proef bleken "Routing API" en "Search API" alleen niet genoeg; die
-   sleutel staat nu met alle producten aan. Welk product ontbrak weten we
-   niet: de namen in het portaal staan achter een inlog en zijn nooit
-   nagekeken. Wat we wel weten: de melding was de algemene weigering van
-   TomTom (403), uit een versie die nog niet zei welke dienst weigerde, en
-   dezelfde sleutel werkte nadat alle producten aan stonden. Dat wijst op
-   een ontbrekend product; of TomTom een nieuwe sleutel pas na enige tijd
-   activeert, is niet nagegaan. Een sleutel met alle producten is een grotere schade als hij uitlekt; de
-   andere stappen hier beperken dat, maar vervangen het minimum niet.
+**Je hebt een gratis TomTom-sleutel nodig.** De integratie haalt routes en adressen bij TomTom op. [Hoe je die aanmaakt, en wat je erbij moet aanzetten](https://github.com/vossov/time-to-leave/blob/main/docs/tomtom-sleutel.md).
 
-   Zo vind je het minimum, bij een sleutel waarmee het nu werkt:
-   - Zet één product uit.
-   - Voeg de integratie opnieuw toe met een **adres** als bestemming (met
-     alleen coördinaten of `zone.home` wordt de Search API niet
-     geprobeerd) en breek bij de bevestigingsstap af. Er wordt dan niets
-     opgeslagen.
-   - Weigert TomTom, dan noemt de melding de dienst: *Search API* (adressen
-     opzoeken) of *Routing API* (routes berekenen). Dat is de dienst die
-     TomTom weigerde, niet de naam van het product dat ontbreekt. Zet het
-     product weer aan en probeer het volgende.
-4. **Laat de domeinwhitelist leeg.** Die is bedoeld voor een sleutel die in
-   een webpagina staat, en werkt via CORS, een controle die de browser
-   doet. Hier gaat de sleutel van Home Assistant zelf naar TomTom en komt
-   hij nooit in je browser, dus een whitelist beschermt niets. Of TomTom
-   met een whitelist verzoeken zonder browser zou weigeren, is niet
-   nagegaan.
-5. **Voeg geen betaalgegevens toe.** Zonder creditcard kan een uitgelekte
-   sleutel geen rekening opleveren; boven het dagkwotum weigert TomTom, en
-   dat staat dan op de kaart. Dat volgt uit het plan; het is niet zelf
-   uitgeprobeerd.
+## Een route instellen
 
-**Waar de sleutel staat:** in de opslag van Home Assistant
-(`.storage/core.config_entries`), onversleuteld, zoals bij elke
-integratie. Hij zit daarmee ook in je back-ups. Hij staat níét in de
-attributen, niet in de kaart en niet in foutmeldingen in het logboek; daar
-zijn tests voor.
+[![Voeg Time to Leave toe aan je Home Assistant.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=time_to_leave)
 
-**Lekt hij toch uit:** TomTom kan een sleutel vernieuwen (*key rotation*);
-de oude werkt dan nog een tijd door. Zet de nieuwe daarna bij elke route
-onder *Configureren*. Eén sleutel per route is een bekende beperking.
+*Instellingen → Apparaten & Services → Integratie toevoegen → Time to Leave.* Je voegt **één route per keer** toe; voor een tweede route voeg je de integratie nog eens toe. De sleutel staat dan al ingevuld.
 
-Het gratis plan geeft 2.500 verzoeken per dag, zonder creditcard. Dat staat
-op TomTom's prijspagina; het is niet nagegaan of dat getal per dienst
-geldt of voor alle diensten samen.
-
-## Instellen
-
-*Instellingen → Apparaten & Services → Integratie toevoegen → Time to
-Leave.* Je voegt **één route per keer** toe; voor een tweede route voeg je
-de integratie nog eens toe. De sleutel staat dan al ingevuld.
-
-1. **Route**: naam, sleutel, vertrekpunt, tussenstops (één per regel,
-   hoogstens drie) en bestemming.
-2. **Bevestigen**: TomTom laat zien welke adressen hij vond, plus de
-   reistijd van nu. Klopt een adres niet, breek dan af en typ het
-   preciezer. "Stationsstraat 1" ligt in tientallen plaatsen.
+1. **Route**: naam, sleutel, vertrekpunt, tussenstops (één per regel, hoogstens drie) en bestemming.
+2. **Bevestigen**: TomTom laat zien welke adressen hij vond, plus de reistijd van nu. Klopt een adres niet, breek dan af en typ het preciezer. "Stationsstraat 1" ligt in tientallen plaatsen.
 
 Daarna, onder **Configureren**:
 
 | instelling | standaard | wat het doet |
 |---|---|---|
-| Marge | 5 min | zoveel eerder dan de aankomsttijd wil je er zijn. Staat altijd op de kaart |
+| Marge | 5 min | zoveel eerder dan de aankomsttijd wil je er zijn |
 | Stoptijd per tussenstop | 0 min | hoe lang je bij elke stop stilstaat; het vertrek schuift zoveel naar voren |
 | Vervoer | auto | auto of motor |
 | Vermijden | niets | tolwegen, snelwegen, veerboten, onverharde wegen. Een voorkeur, geen verbod |
-| Andere routes tonen | 2 | hoeveel alternatieven er in het detailvenster staan |
+| Andere routes tonen | 2 | hoeveel alternatieven in het detailvenster staan |
 | Verversen elke | 5 min | alleen binnen het venster |
 
-En op de tweede pagina het **rooster**: per weekdag *tonen vanaf*, *tonen
-tot* en *aankomen om*. Standaard maandag tot en met vrijdag van 06:30 tot
-09:30, zonder aankomsttijd. De aankomsttijd is optioneel en per dag in te
-stellen; maak je het veld leeg (het tijdveld heeft daarvoor een
-wis-knop), dan is de rijtijd het hoofdgetal op de kaart.
+Op de tweede pagina staat het **rooster**: per weekdag *tonen vanaf*, *tonen tot* en *aankomen om*. Standaard maandag tot en met vrijdag van 06:30 tot 09:30, zonder aankomsttijd.
+
+**De aankomsttijd is optioneel**, per dag. Vul je hem in, dan rekent TomTom terug en is de vertrektijd het hoofdgetal. Laat je hem leeg (het tijdveld heeft een wis-knop), dan toont de kaart de rijtijd.
 
 ## De kaart
 
@@ -174,38 +88,47 @@ Alles is ook in de visuele editor in te stellen.
 |---|---|---|
 | `entities` | — | de reistijd-sensoren van je routes, in volgorde |
 | `title` | leeg | een kop boven de kaart |
-| `design` | `default` | `default` (eigen opmaak), `ha` (volgt je Home Assistant-thema) of `bubble` (in de stijl van Bubble Card, zonder die kaart nodig te hebben; zie hieronder) |
+| `design` | `default` | `default` (eigen opmaak), `ha` (volgt je Home Assistant-thema) of `bubble` (in de stijl van Bubble Card, zonder die kaart nodig te hebben) |
 | `show` | `window` | `window`: een route staat er alleen binnen zijn venster, en zonder route in beeld verbergt de kaart zich. `always`: altijd, met buiten het venster wanneer hij terugkomt |
 | `target` | `false` | toont ook de aankomsttijd en marge die je zelf hebt ingevoerd ("voor 08:30, 5 min marge"), onder de naam en in het venster |
 | `details` | `true` | een tik opent het detailvenster |
 | `waze` | `true` | een knop om Waze te openen met de bestemming |
 
-Wat de kaart toont:
+**Wat er op de kaart staat**
 
-- **Bovenaan, rechts**: met een aankomsttijd de vertrektijd ("Vertrek
-  07:52", of "Vertrek nu" als het zover is), zonder aankomsttijd de rijtijd
-  ("34 min"). Een aftelling ("over 18 min") staat er niet.
-- **Onder de naam**: hoe lang je rijdt, de wegen en de minuten file. Is je
-  vertrek nu en kom je te laat, dan staat daar "11 min te laat". Het
-  stipje (bij `bubble` de kleur van het icoon) is groen, oranje of rood naar
-  de vertraging die TomTom meldt.
-- **In het venster**: de reistijd nu, gebruikelijk op dit uur, en zonder
-  verkeer; wat er verwacht wordt bij je vertrektijd; de files met weg,
-  snelheid en vertraging; de etappes langs je tussenstops, elk met een
-  eigen Waze-knop; andere routes; en de adressen zoals ze gevonden zijn.
-  De aankomsttijd en marge staan er alleen bij `target: true`.
+- **Rechts**: met een aankomsttijd de vertrektijd (*Vertrek 07:52*, of *Vertrek nu* als het zover is), zonder aankomsttijd de rijtijd (*34 min*).
+- **Onder de naam**: hoe lang je rijdt, de wegen en de minuten file. Kom je te laat, dan staat daar *11 min te laat*. De kleur van het icoon (bij `bubble`) of het stipje (bij de andere twee) is groen, oranje of rood naar de vertraging die TomTom meldt.
+- **In het venster**: de reistijd nu, gebruikelijk op dit uur en zonder verkeer; wat er bij je vertrektijd verwacht wordt; de files met weg, snelheid en vertraging; de etappes langs je tussenstops; andere routes; en de adressen zoals ze gevonden zijn.
 
-**De Bubble-stijl** is nagebouwd naar de echte Bubble Card, nagelezen in
-`dist/bubble-card.js` van [Clooos/Bubble-Card](https://github.com/Clooos/Bubble-Card):
-een pil in de secundaire achtergrondkleur met het icoon in een rondje in de
-kaartachtergrond, 50 px hoog, naam 13 px vet en status 12 px, de waarden als
-pillen van 36 px, en een pop-up die onderaan het scherm plakt. Ze gebruikt
-dezelfde terugvalketens, dus stelt je thema `--bubble-main-background-color`,
-`--bubble-border-radius` en dergelijke in, dan volgt de kaart die. Dat laatste
-is uit de broncode afgeleid en niet met een Bubble-thema geprobeerd.
+Een sensor die er niet is of niet werkt, blijft in beeld met een melding. Verbergen zou juist het probleem verbergen.
 
-Een sensor die er niet is of niet werkt, blijft in beeld met een melding.
-Verbergen zou juist het probleem verbergen.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/venster.png" alt="Het detailvenster in de Bubble-stijl" width="360">
+  <br>
+  <sub>Het detailvenster, met voorbeeldgegevens.</sub>
+</p>
+
+<details>
+
+<summary>De andere twee vormgevingen</summary>
+
+<br>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/vormgevingen.png" alt="De vormgevingen default en ha" width="100%">
+</p>
+
+</details>
+
+<details>
+
+<summary>Hoe de Bubble-stijl is opgebouwd</summary>
+
+<br>
+
+De Bubble-stijl is nagebouwd naar de echte Bubble Card, nagelezen in `dist/bubble-card.js` van [Clooos/Bubble-Card](https://github.com/Clooos/Bubble-Card): een pil in de secundaire achtergrondkleur met het icoon in een rondje in de kaartachtergrond, 50 px hoog, de naam 13 px vet en de status 12 px, de waarden als pillen van 36 px, en een pop-up die onderaan het scherm plakt. Ze gebruikt dezelfde terugvalketens, dus stelt je thema `--bubble-main-background-color`, `--bubble-border-radius` en dergelijke in, dan volgt de kaart die. Dat laatste is uit de broncode afgeleid en niet met een Bubble-thema geprobeerd.
+
+</details>
 
 ## Sensoren
 
@@ -216,11 +139,13 @@ Per route twee, onder een apparaat met de naam van de route:
 | `sensor.<route>_reistijd` | minuten rijden als je nu vertrekt. Buiten het venster en bij een fout: onbekend. Met langetermijnstatistiek |
 | `sensor.<route>_vertrektijd` | het tijdstip waarop je moet vertrekken; alleen als er vandaag een aankomsttijd is |
 
-In een Engelstalige Home Assistant heten ze `_travel_time` en
-`_departure_time`. De attributen van de reistijd zijn wat de kaart leest.
-Ze gaan niet naar de recorder; de reistijd zelf wel.
+In een Engelstalige Home Assistant heten ze `_travel_time` en `_departure_time`. De attributen van de reistijd zijn wat de kaart leest; ze gaan niet naar de recorder, de reistijd zelf wel.
 
-### Een melding vóór vertrek
+<details>
+
+<summary>Voorbeeld: een melding tien minuten vóór vertrek</summary>
+
+<br>
 
 ```yaml
 alias: Bijna tijd om naar werk te gaan
@@ -238,81 +163,71 @@ actions:
         ({{ states('sensor.naar_werk_reistijd') }} min rijden).
 ```
 
-## Hoe nauwkeurig is het?
+</details>
 
-- **De reistijd van nu** is wat TomTom *"the estimated travel time"*
-  noemt, met *"all available traffic information"*. Het is een schatting
-  van TomTom, geen meting.
-- **De vertrektijd** rekent TomTom zelf terug vanaf je aankomsttijd min de
-  marge (`arriveAt`), met het verkeer dat hij voor dat moment verwacht.
-  De documentatie zegt niet hoe zwaar het live verkeer meeweegt voor een
-  moment dat nog moet komen. Wel wordt hij elke ronde opnieuw berekend,
-  dus naarmate je vertrek nadert leunt hij op steeds actueler verkeer.
-- **Afronding** gaat altijd de veilige kant op: een vertrektijd van
-  07:52:40 wordt 07:52, en 10 minuten en 20 seconden te laat wordt 11.
-- **Tussenstops**: TomTom rekent de rijtijd langs je stops. Hoe lang je
-  daar stilstaat weet hij niet; dat telt deze integratie er gewoon bij.
-  Dat het verkeer op dat eerdere moment anders kan zijn, valt erbuiten.
-- **Files** zijn wat TomTom op de route meldt. De weg staat erbij als de
-  file op een stuk ligt dat TomTom zelf als belangrijk aanmerkt. Anders
-  blijft hij leeg, in plaats van de dichtstbijzijnde weg te raden.
-- **Het stipje** (groen, oranje, rood) is een keuze van de kaart. Oranje
-  vanaf 5 minuten of 15% vertraging ten opzichte van een lege weg, rood
-  vanaf 15 minuten of 35%. De getallen zelf staan in het venster.
-- **Waze rekent zelf**. De knop geeft Waze alleen de bestemming, en Waze
-  kiest zijn eigen route. Die kan afwijken van wat TomTom hier toont.
-- **Zomer- en wintertijd**: alles wordt via UTC gerekend en op de klok van
-  Home Assistant getoond. Een rit over de wisselnacht klopt op de minuut.
-  Daar is een test voor.
+## Goed om te weten
 
-## Wat het kost
+- **Reistijd en vertrektijd zijn schattingen van TomTom**, geen metingen. De vertrektijd wordt elke ronde opnieuw berekend, dus hij leunt op steeds actueler verkeer naarmate je vertrek nadert. De documentatie van TomTom zegt niet hoe zwaar live verkeer meeweegt voor een moment dat nog moet komen.
+- **Afronding gaat de veilige kant op**: een vertrektijd van 07:52:40 wordt 07:52, en 10 minuten en 20 seconden te laat wordt 11.
+- **Waze rekent zelf.** De knop geeft Waze alleen de bestemming; Waze kiest zijn eigen route, die kan afwijken van wat TomTom toont.
+- **De tests draaien op voorbeelden uit TomTom's documentatie**, niet op een antwoord met een echte sleutel, en dekken het scherm in een draaiende Home Assistant niet.
 
-Per ronde één verzoek, of twee als er vandaag een aankomsttijd is die nog
-niet voorbij is. Elk adres wordt hooguit één keer per dag opgezocht.
+[Alles over nauwkeurigheid, kosten, privacy en wat niet getest is](https://github.com/vossov/time-to-leave/blob/main/docs/betrouwbaarheid.md)
 
-**Buiten het venster gaat er niets naar TomTom.** De integratie wordt dan
-hooguit een keer per uur wakker om te kijken of het venster begint, zonder
-verzoek. Dat is gemeten met een simulatie van een hele dag
-(`tests/test_coordinator.py`): bij een venster van 06:30 tot 09:30 ging het
-eerste verzoek om 06:30 uit en het laatste om 09:25, op een dag zonder
-venster geen enkel. Alleen waar jij zelf om vraagt gaat buiten het venster
-ook iets uit: een route toevoegen of de adressen wijzigen onder
-*Configureren* zoekt ze meteen op en vraagt één route, om te controleren
-dat het klopt.
+## Veelgestelde vragen
 
-Voor 06:30–09:30, elke 5 minuten en een aankomsttijd van 08:30 zijn dat 60
-verzoeken per dag: 36 routeverzoeken, 23 aankomstberekeningen (die stoppen
-zodra de streeftijd, 08:25, voorbij is) en één opzoeking per adres. Ligt de
-aankomsttijd aan het eind van het venster, dan zijn het er hoogstens 73.
-Drie routes blijven ruim onder de 2.500 per dag van het gratis plan.
+<details>
 
-Weigert TomTom (403: sleutel ongeldig of kwotum op; 429: te veel tegelijk),
-dan vraagt de integratie steeds minder vaak: na de eerste weigering drie
-keer het gewone ritme, daarna steeds drie keer zoveel, tot hooguit één keer
-per uur. Antwoordt TomTom weer, dan gaat hij terug naar het gewone ritme.
-Elk nieuw venster begint schoon. De melding staat op de kaart, want op een
-telefoon heb je geen logboek.
+<summary>Waarom TomTom en niet Waze?</summary>
 
-## Privacy en opslag
+<br>
 
-- Je adressen gaan naar TomTom, om op te zoeken en om de route te berekenen.
-- De sleutel staat in de opslag van Home Assistant, zoals bij elke andere
-  integratie.
-- **Wat TomTom vindt wordt niet op schijf bewaard**, alleen wat je
-  intypte. TomTom's eigen voorwaarden staan achter een inlog en zijn niet
-  gelezen. Een concurrent schrijft dat TomTom opslag verbiedt en caching
-  alleen toestaat zolang de response-headers het zeggen. Daarom: in het
-  geheugen, tot middernacht, of korter als `Cache-Control` dat vraagt.
+Waze heeft geen openbare routing-API, en de voorwaarden van Waze verbieden geautomatiseerde toegang en het omzeilen van beveiliging. TomTom heeft wel een officiële API met een gratis sleutel, en kan zelf terugrekenen vanaf een aankomsttijd. Waze blijft in beeld voor het rijden zelf, via de officiële Waze-link. [De hele afweging, met bronnen](https://github.com/vossov/time-to-leave/blob/main/docs/waarom-tomtom.md).
 
-## Wat niet getest is
+</details>
 
-- **Een echt antwoord van TomTom.** De parser is getest op de voorbeelden
-  uit TomTom's documentatie, niet op een antwoord met een echte sleutel.
-  Zie `tests/fixtures/README.md` voor hoe je er een opslaat.
-- **Het scherm in een draaiende Home Assistant.** De config flow, de
-  secties per weekdag en de editor met `ha-form` zijn opgebouwd met
-  gestubde modules. De kaart is in Chromium getekend tegen de
-  sensorattributen, niet in Home Assistant zelf.
-- **Alternatieven bij een route met tussenstops.** Of TomTom die geeft,
-  zegt de documentatie niet. Weigert hij, dan gaat het eenmalig verder
-  zonder alternatieven.
+<details>
+
+<summary>Gaat er iets naar TomTom als de route niet in beeld is?</summary>
+
+<br>
+
+Nee. Buiten het venster wordt de integratie hooguit eens per uur wakker om te kijken of het venster begint, zonder verzoek. Dat is gemeten met een simulatie van een hele dag, en die simulatie is een test. Alleen een route toevoegen of de adressen wijzigen controleert meteen bij TomTom.
+
+</details>
+
+<details>
+
+<summary>Wat kost het?</summary>
+
+<br>
+
+Het gratis plan van TomTom geeft 2.500 verzoeken per dag. Een route met een venster van 06:30 tot 09:30, elke 5 minuten en een aankomsttijd van 08:30 kost er 60 per dag, hoogstens 73. Drie routes blijven dus ruim eronder. [De berekening](https://github.com/vossov/time-to-leave/blob/main/docs/betrouwbaarheid.md#wat-het-kost).
+
+</details>
+
+<details>
+
+<summary>Wat gebeurt er met mijn adressen en mijn sleutel?</summary>
+
+<br>
+
+Je adressen gaan naar TomTom, om op te zoeken en om de route te berekenen. Wat TomTom vindt wordt niet op schijf bewaard, alleen in het geheugen tot middernacht. De sleutel staat onversleuteld in de opslag van Home Assistant, zoals bij elke integratie, en dus ook in je back-ups; hij staat niet in de attributen, de kaart of het logboek. [Meer over privacy](https://github.com/vossov/time-to-leave/blob/main/docs/betrouwbaarheid.md#privacy-en-opslag).
+
+</details>
+
+<details>
+
+<summary>Welke rechten moet mijn TomTom-sleutel hebben?</summary>
+
+<br>
+
+Dat minimum is nog niet vastgesteld: de eerste proef met alleen de Routing API en de Search API was te weinig. [Wat wel bekend is, en hoe je het minimum zelf vindt](https://github.com/vossov/time-to-leave/blob/main/docs/tomtom-sleutel.md).
+
+</details>
+
+## Versies en hulp
+
+- **[Alle versies en wat er veranderd is](https://github.com/vossov/time-to-leave/blob/main/CHANGELOG.md)**. Elke versie krijgt vanzelf een release met die notes.
+- **Iets stuk, of een wens?** Maak een [issue](https://github.com/vossov/time-to-leave/issues) aan. Staat er een melding in de kaart, vermeld die dan, want op een telefoon is er geen logboek.
+- **Licentie**: [MIT](https://github.com/vossov/time-to-leave/blob/main/LICENSE).

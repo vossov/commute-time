@@ -33,14 +33,28 @@ Dezelfde als in cycling-next-race en Stars:
   minor bij iets nieuws. Alleen README, CLAUDE.md of tests: niet nodig.
 - **Het nieuwe versienummer staat vooraan in het commitbericht**, als
   `v0.1.1 — korte omschrijving`, alleen op commits die het ophogen.
-- **Uitbrengen gaat met een versienummer, nooit met een commit-hash**: tag
-  `vX.Y.Z`; `.github/workflows/release.yml` maakt de release en weigert
-  een tag die niet met de drie versies overeenkomt.
+- **Uitbrengen gaat vanzelf, met een versienummer en notes, nooit met een
+  commit-hash.** Zonder GitHub-release toont HACS "10f32a5" in plaats van
+  "v0.2.1" en geen release-notes (zo stond het op 18 november 2026, omdat de
+  tag-push vanuit de sandbox een 403 gaf). De stappen, alle drie in dezelfde
+  push: (1) de versie ophogen op de drie plekken; (2) bovenaan `CHANGELOG.md`
+  een sectie voor die versie; (3) naar `main` pushen. Dan maakt
+  `.github/workflows/release.yml` zelf de tag en de release, met titel en
+  notes uit de changelog (`tools/release_notes.py`). **Push geen tags**; dat
+  hoeft niet en lukt hier niet. De workflow draait eerst de tests, de
+  Chrome 61-grens en hassfest, en faalt als de drie versies verschillen of de
+  changelog-sectie ontbreekt. `tests/test_release.py` faalt in de gewone CI
+  als de versie in de manifest geen netjes ingevulde sectie heeft.
+- **Schrijf de changelog voor de gebruiker**, in gewone taal: wat verandert er
+  voor hem, niet welke functie je aanpaste. Heeft een eerdere versie iets
+  onjuists beweerd, zet dat er dan bij onder "Let op" (zie 0.1.2). Alleen
+  README, docs of tests aangepast: geen nieuwe versie en geen nieuwe sectie.
 - **Een afgeronde wijziging mag meteen live.** Staande toestemming van de
   eigenaar, 17 november 2026, op de vraag "rechtstreeks naar main en taggen,
   zonder pull request?": "ja". Dezelfde werkwijze als in cycling-next-race:
-  naar `main` en taggen hoort bij het werk afmaken, en een wijziging die op
-  een branch blijft staan draait nergens. Vraag alleen als de wijziging zelf
+  naar `main` pushen hoort bij het werk afmaken (de release volgt dan vanzelf,
+  zie hierboven), en een wijziging die op een branch blijft staan draait
+  nergens. Vraag alleen als de wijziging zelf
   onzeker is (niet getest, een gok). De CI draait hier ná de push, dus kijk
   na elke push of alles groen is, vooral hassfest: dat draait de
   release-workflow zelf niet. HACS faalt zolang de repo geen beschrijving en
@@ -86,6 +100,16 @@ custom_components/time_to_leave/
   config_flow.py  toevoegen (+ bevestigen wat TomTom vond) en het optiescherm
   __init__.py     opzetten, en de kaart registreren
   www/time-to-leave-card.js
+```
+
+Daaromheen, in de root van de repo:
+
+```
+CHANGELOG.md                  wat er per versie veranderd is; bron van de release-notes
+docs/                         de lange uitleg die de README kort houdt; docs/img: de afbeeldingen
+tools/release_notes.py        titel en notes van een versie uit CHANGELOG.md; geen afhankelijkheden
+tools/maak_afbeeldingen.cjs   tekent docs/img/*.png met de echte kaart (Playwright)
+.github/workflows/            validate.yml (CI) en release.yml (maakt de release zelf)
 ```
 
 - **De sensor rekent, de kaart toont.** De kaart zegt alleen zelf "nu" zodra
@@ -194,6 +218,31 @@ eigen `ha-card` (achtergrond op `:host`) en `ha-icon` (shadow root, MDI-paden).
 dan wint dat van `.waze ha-icon { display: none }`; de echte `ha-icon` doet dat
 niet. Zet het op `:host`.
 
+## De README en docs
+
+De eigenaar vond de eerste README "niet netjes" (18 november 2026) en wees naar
+Bubble Card als voorbeeld van hoe het eruit hoort te zien. Daarom:
+
+- **De README is het visitekaartje en blijft kort**: banner, één zin, badges,
+  de HACS-knop, een inhoudsopgave, de stappen, de kaartopties, en
+  veelgestelde vragen in `<details>`. De lange uitleg staat in `docs/`
+  (`tomtom-sleutel.md`, `waarom-tomtom.md`, `betrouwbaarheid.md`). Verplaats
+  uitleg naar docs in plaats van de README te laten groeien.
+- **Alle links en afbeeldingen zijn volledige adressen naar `main`**
+  (`https://github.com/vossov/time-to-leave/blob/main/…`, `raw.githubusercontent.com`).
+  Relatieve paden werken in HACS vaak niet. `tests/test_readme.py` controleert
+  dat elk adres naar iets wijst dat er is, dat elk `#anker` een kop is, en dat
+  elke `##`-kop in de inhoudsopgave staat.
+- De kop `### Opties van de kaart` en de tabel eronder moeten blijven staan:
+  `tests/test_kaart.py` vergelijkt hem met de editor.
+- **De afbeeldingen zijn geen schermafbeeldingen uit Home Assistant.** Ze zijn
+  met `node tools/maak_afbeeldingen.cjs` getekend in Chromium, met de echte
+  kaart en voorbeeldgegevens, en de README zegt dat erbij. Hou de voorbeeld-
+  getallen onderling kloppend (33 + 8 min vertraging = 41 min, vertrek 07:34
+  geeft aankomst 08:15): de eerste versie toonde "nu 41 min, gebruikelijk
+  3 min" naast elkaar. Maak ze opnieuw als de kaart er anders uitziet. Echte
+  schermafbeeldingen van de eigenaar zijn beter, zodra die er zijn.
+
 ## Bronnen
 
 | wat | adres | nagekeken |
@@ -251,7 +300,12 @@ node --test tests/kaart.test.mjs
 npm install --no-save --silent acorn@8
 node tests/floor.mjs custom_components/time_to_leave/www/time-to-leave-card.js
 python3 -m compileall -q custom_components/time_to_leave
+python3 tools/release_notes.py "$(python3 -c "import json;print(json.load(open('custom_components/time_to_leave/manifest.json'))['version'])")" check
 ```
+
+De laatste regel vraagt of de huidige versie een nette changelog-sectie heeft;
+`tests/test_release.py` doet hetzelfde. De afbeeldingen opnieuw maken kan met
+`node tools/maak_afbeeldingen.cjs` (vraagt Playwright; niet in de CI).
 
 - `tests/floor.mjs` is overgenomen uit Skywatch: de hele Chrome 61-grens
   (parse, syntax, ingebouwde functies, CSS) uit de syntaxboom.
