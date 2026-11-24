@@ -37,9 +37,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  MANIFEST: custom_components/time_to_leave/manifest.json
-  CONST: custom_components/time_to_leave/const.py
-  KAART: custom_components/time_to_leave/www/time-to-leave-card.js
+  MANIFEST: custom_components/commute_time/manifest.json
+  CONST: custom_components/commute_time/const.py
+  KAART: custom_components/commute_time/www/commute-time-card.js
 
 jobs:
   release:

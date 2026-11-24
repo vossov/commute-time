@@ -51,7 +51,7 @@
         "soort": "adres"
       }
     ],
-    "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-time-to-leave",
+    "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-commute-time",
     "fout": null
   },
   "zonder_doel": {
@@ -106,7 +106,7 @@
         "soort": "adres"
       }
     ],
-    "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-time-to-leave",
+    "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-commute-time",
     "fout": null
   },
   "buiten_venster": {

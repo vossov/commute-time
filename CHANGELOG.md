@@ -11,6 +11,22 @@ Een sectie is zo opgebouwd, nieuwste bovenaan:
 - daarna de kopjes `### Nieuw`, `### Verbeterd`, `### Opgelost` en `### Let op`,
   alleen als ze iets te melden hebben, elk met streepjes.
 
+## [0.3.0] — 2026-11-24
+
+> Time to Leave heet nu Commute Time
+
+### Nieuw
+- De integratie heet voortaan **Commute Time**. De oude naam was al in gebruik door een bekende app die werkuren bijhoudt, en wie op "Time to Leave" zocht kwam daar terecht. De repository is nu `vossov/commute-time`; het oude adres stuurt GitHub door.
+
+### Let op
+- **Dit is geen gewone update: je zet je routes één keer opnieuw op.** Home Assistant ziet Commute Time als een andere integratie dan Time to Leave, dus je routes, je TomTom-sleutel en je kaarten komen niet vanzelf mee.
+  1. Voeg in HACS `https://github.com/vossov/commute-time` toe (categorie Integratie), download *Commute Time* en herstart Home Assistant.
+  2. Schrijf je routes op (adressen, venster, aankomsttijden) en zorg dat je je TomTom-sleutel bij de hand hebt.
+  3. Verwijder de routes van Time to Leave onder *Instellingen → Apparaten & Services*. Doe dit **vóór** je ze opnieuw toevoegt: zolang de oude sensoren bestaan, krijgen de nieuwe `_2` achter hun naam.
+  4. Voeg je routes opnieuw toe via *Integratie toevoegen → Commute Time*, met dezelfde naam. Dan heten de sensoren weer `sensor.<route>_reistijd` en `sensor.<route>_vertrektijd` en blijven je automatiseringen werken.
+  5. Zet in je dashboards `type: custom:time-to-leave-card` om naar `type: custom:commute-time-card`. De andere kaartopties blijven hetzelfde.
+  6. Verwijder Time to Leave in HACS en herstart.
+
 ## [0.2.1] — 2026-11-18
 
 > Eerste versie met een versienummer en release-notes in HACS

@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 
 WAZE_UL = "https://waze.com/ul"
 # Waze vraagt om een utm_source "for better partner support"
-UTM_BRON = "home-assistant-time-to-leave"
+UTM_BRON = "home-assistant-commute-time"
 
 
 def waze_link(

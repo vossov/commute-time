@@ -142,7 +142,7 @@ def _laad(naam):
     _installeer_stubs()
     if str(COMPONENTS) not in sys.path:
         sys.path.insert(0, str(COMPONENTS))
-    return importlib.import_module(f"time_to_leave.{naam}")
+    return importlib.import_module(f"commute_time.{naam}")
 
 
 @pytest.fixture(scope="session")

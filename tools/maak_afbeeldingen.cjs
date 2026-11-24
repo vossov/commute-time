@@ -4,7 +4,7 @@
  *   npm install --no-save playwright   (of een bestaande Playwright gebruiken)
  *   node tools/maak_afbeeldingen.cjs
  *
- * Wat je ziet is de echte kaart (custom_components/time_to_leave/www/), getekend
+ * Wat je ziet is de echte kaart (custom_components/commute_time/www/), getekend
  * in Chromium tegen de attributen uit tests/fixtures/sensor.json, met een eigen
  * `ha-card` en `ha-icon` en de kleuren van het standaardthema van Home
  * Assistant. Het zijn dus voorbeeldgegevens en geen schermafbeeldingen uit
@@ -19,7 +19,7 @@ const path = require('path');
 
 const WORTEL = path.resolve(__dirname, '..');
 const UIT = path.resolve(process.argv[2] || path.join(WORTEL, 'docs', 'img'));
-const kaart = fs.readFileSync(path.join(WORTEL, 'custom_components/time_to_leave/www/time-to-leave-card.js'), 'utf8');
+const kaart = fs.readFileSync(path.join(WORTEL, 'custom_components/commute_time/www/commute-time-card.js'), 'utf8');
 const staten = JSON.parse(fs.readFileSync(path.join(WORTEL, 'tests/fixtures/sensor.json'), 'utf8'));
 
 const MDI = {
@@ -99,7 +99,7 @@ const ROUTES = ['sensor.kantoor', 'sensor.sport', 'sensor.tennis', 'sensor.schoo
     });
   }, MDI);
   await page.addScriptTag({ content: kaart, type: 'module' });
-  await page.waitForFunction(() => customElements.get('time-to-leave-card'));
+  await page.waitForFunction(() => customElements.get('commute-time-card'));
 
   // één blok op de pagina zetten en er een afbeelding van nemen
   async function neem(naam, bouw, args) {
@@ -119,7 +119,7 @@ const ROUTES = ['sensor.kantoor', 'sensor.sport', 'sensor.tennis', 'sensor.schoo
     function doos(klasse, vars, titel, config) {
       const d = document.createElement('div'); d.className = 'doos'; d.setAttribute('style', vars + ';width:' + (config.breedte || 420) + 'px');
       d.innerHTML = '<div class="k">' + titel + '</div>';
-      const k = document.createElement('time-to-leave-card');
+      const k = document.createElement('commute-time-card');
       k.setConfig(config.kaart); k.hass = args.hass; d.appendChild(k); return d;
     }`;
 
@@ -144,7 +144,7 @@ const ROUTES = ['sensor.kantoor', 'sensor.sport', 'sensor.tennis', 'sensor.schoo
   await neem('venster.png', kaartDoos + `
     const d = doos('', args.donker, '', { breedte: 420, kaart: { entities: ['sensor.kantoor'], design: 'bubble', show: 'always' } });
     werk.appendChild(d);
-    const k = d.querySelector('time-to-leave-card');
+    const k = d.querySelector('commute-time-card');
     k.shadowRoot.querySelector('[data-route="sensor.kantoor"]').click();
     // alleen de tegel verbergen: het venster staat naast hem in de schaduw-DOM
     // en verdwijnt mee als je de hele kaart met display: none wegzet
@@ -165,14 +165,14 @@ const ROUTES = ['sensor.kantoor', 'sensor.sport', 'sensor.tennis', 'sensor.schoo
     b.innerHTML = '<div style="display:flex;align-items:center">' +
       '<div style="width:100px;height:100px;border-radius:50%;background:rgba(67,160,71,.22);color:#6fd072;display:flex;align-items:center;justify-content:center;margin-right:24px;flex:none">' +
       '<svg viewBox="0 0 24 24" width="58" height="58" fill="currentColor"><path d="' + MDI['car-clock'] + '"/></svg></div>' +
-      '<div><div style="font-size:56px;font-weight:700;letter-spacing:-1px;line-height:1.05;white-space:nowrap">Time to Leave</div>' +
+      '<div><div style="font-size:56px;font-weight:700;letter-spacing:-1px;line-height:1.05;white-space:nowrap">Commute Time</div>' +
       '<div style="font-size:22px;opacity:.78;margin-top:10px;white-space:nowrap">Rijtijd en vertrektijd voor je vaste routes</div></div></div>' +
       '<div id="kaartplek" style="width:400px;flex:none"></div>';
     werk.appendChild(b);
     // in de banner korte regels, zodat geen pil over drie regels loopt
     const kort = JSON.parse(JSON.stringify(hass));
     Object.assign(kort.states['sensor.kantoor'].attributes, { via: ['A2'], files: [] });
-    const k = document.createElement('time-to-leave-card');
+    const k = document.createElement('commute-time-card');
     k.setConfig({ entities: ['sensor.kantoor', 'sensor.tennis'], design: 'bubble', show: 'always' });
     k.hass = kort;
     b.querySelector('#kaartplek').appendChild(k);

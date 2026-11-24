@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/banner.png" alt="Time to Leave: rijtijd en vertrektijd voor je vaste routes" width="100%">
+  <img src="https://raw.githubusercontent.com/vossov/commute-time/main/docs/img/banner.png" alt="Commute Time: rijtijd en vertrektijd voor je vaste routes" width="100%">
 </p>
 
-# Time to Leave
+# Commute Time
 
-**Hoe lang rijd ik erover, en hoe laat moet ik weg?** Time to Leave zet per vaste route de reistijd met verkeer, de wegen en de files op je Home Assistant-dashboard, en rekent uit wanneer je moet vertrekken om op tijd te zijn.
+**Hoe lang rijd ik erover, en hoe laat moet ik weg?** Commute Time zet per vaste route de reistijd met verkeer, de wegen en de files op je Home Assistant-dashboard, en rekent uit wanneer je moet vertrekken om op tijd te zijn.
 
-[![Versie](https://img.shields.io/github/v/release/vossov/time-to-leave?style=for-the-badge&label=versie)](https://github.com/vossov/time-to-leave/releases) [![HACS](https://img.shields.io/badge/HACS-Custom-orange?style=for-the-badge)](https://hacs.xyz) [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.1%2B-blue?style=for-the-badge&logo=home-assistant)](https://www.home-assistant.io) [![Licentie](https://img.shields.io/github/license/vossov/time-to-leave?style=for-the-badge&label=licentie)](https://github.com/vossov/time-to-leave/blob/main/LICENSE)
+[![Versie](https://img.shields.io/github/v/release/vossov/commute-time?style=for-the-badge&label=versie)](https://github.com/vossov/commute-time/releases) [![HACS](https://img.shields.io/badge/HACS-Custom-orange?style=for-the-badge)](https://hacs.xyz) [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.1%2B-blue?style=for-the-badge&logo=home-assistant)](https://www.home-assistant.io) [![Licentie](https://img.shields.io/github/license/vossov/commute-time?style=for-the-badge&label=licentie)](https://github.com/vossov/commute-time/blob/main/LICENSE)
 
-[![Open Time to Leave in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vossov&repository=time-to-leave&category=integration)
+[![Open Commute Time in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vossov&repository=commute-time&category=integration)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/bubble.png" alt="De kaart in de Bubble-stijl, donker en licht" width="100%">
+  <img src="https://raw.githubusercontent.com/vossov/commute-time/main/docs/img/bubble.png" alt="De kaart in de Bubble-stijl, donker en licht" width="100%">
   <br>
   <sub>De kaart in de Bubble-stijl. Voorbeeldgegevens, in een browser getekend: geen schermafbeelding uit Home Assistant.</sub>
 </p>
@@ -30,7 +30,7 @@
 
 ## Installeren
 
-**Via HACS** (aanbevolen): klik op de knop bovenaan, of ga in HACS naar ⋮ → *Aangepaste repositories* en voeg `https://github.com/vossov/time-to-leave` toe als categorie **Integratie**. Download *Time to Leave* en herstart Home Assistant.
+**Via HACS** (aanbevolen): klik op de knop bovenaan, of ga in HACS naar ⋮ → *Aangepaste repositories* en voeg `https://github.com/vossov/commute-time` toe als categorie **Integratie**. Download *Commute Time* en herstart Home Assistant.
 
 <details>
 
@@ -38,19 +38,19 @@
 
 <br>
 
-Kopieer de map `custom_components/time_to_leave` naar `config/custom_components/` en herstart Home Assistant.
+Kopieer de map `custom_components/commute_time` naar `config/custom_components/` en herstart Home Assistant.
 
 </details>
 
 De kaart hoort bij de integratie en wordt vanzelf geladen. Je hoeft geen resources toe te voegen, en Bubble Card of button-card is niet nodig. Na een update kan het nodig zijn de pagina te verversen.
 
-**Je hebt een gratis TomTom-sleutel nodig.** De integratie haalt routes en adressen bij TomTom op. [Hoe je die aanmaakt, en wat je erbij moet aanzetten](https://github.com/vossov/time-to-leave/blob/main/docs/tomtom-sleutel.md).
+**Je hebt een gratis TomTom-sleutel nodig.** De integratie haalt routes en adressen bij TomTom op. [Hoe je die aanmaakt, en wat je erbij moet aanzetten](https://github.com/vossov/commute-time/blob/main/docs/tomtom-sleutel.md).
 
 ## Een route instellen
 
-[![Voeg Time to Leave toe aan je Home Assistant.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=time_to_leave)
+[![Voeg Commute Time toe aan je Home Assistant.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=commute_time)
 
-*Instellingen → Apparaten & Services → Integratie toevoegen → Time to Leave.* Je voegt **één route per keer** toe; voor een tweede route voeg je de integratie nog eens toe. De sleutel staat dan al ingevuld.
+*Instellingen → Apparaten & Services → Integratie toevoegen → Commute Time.* Je voegt **één route per keer** toe; voor een tweede route voeg je de integratie nog eens toe. De sleutel staat dan al ingevuld.
 
 1. **Route**: naam, sleutel, vertrekpunt, tussenstops (één per regel, hoogstens drie) en bestemming.
 2. **Bevestigen**: TomTom laat zien welke adressen hij vond, plus de reistijd van nu. Klopt een adres niet, breek dan af en typ het preciezer. "Stationsstraat 1" ligt in tientallen plaatsen.
@@ -73,7 +73,7 @@ Op de tweede pagina staat het **rooster**: per weekdag *tonen vanaf*, *tonen tot
 ## De kaart
 
 ```yaml
-type: custom:time-to-leave-card
+type: custom:commute-time-card
 entities:
   - sensor.naar_werk_reistijd
   - sensor.naar_school_reistijd
@@ -103,7 +103,7 @@ Alles is ook in de visuele editor in te stellen.
 Een sensor die er niet is of niet werkt, blijft in beeld met een melding. Verbergen zou juist het probleem verbergen.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/venster.png" alt="Het detailvenster in de Bubble-stijl" width="360">
+  <img src="https://raw.githubusercontent.com/vossov/commute-time/main/docs/img/venster.png" alt="Het detailvenster in de Bubble-stijl" width="360">
   <br>
   <sub>Het detailvenster, met voorbeeldgegevens.</sub>
 </p>
@@ -115,7 +115,7 @@ Een sensor die er niet is of niet werkt, blijft in beeld met een melding. Verber
 <br>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vossov/time-to-leave/main/docs/img/vormgevingen.png" alt="De vormgevingen default en ha" width="100%">
+  <img src="https://raw.githubusercontent.com/vossov/commute-time/main/docs/img/vormgevingen.png" alt="De vormgevingen default en ha" width="100%">
 </p>
 
 </details>
@@ -172,9 +172,19 @@ actions:
 - **Waze rekent zelf.** De knop geeft Waze alleen de bestemming; Waze kiest zijn eigen route, die kan afwijken van wat TomTom toont.
 - **De tests draaien op voorbeelden uit TomTom's documentatie**, niet op een antwoord met een echte sleutel, en dekken het scherm in een draaiende Home Assistant niet.
 
-[Alles over nauwkeurigheid, kosten, privacy en wat niet getest is](https://github.com/vossov/time-to-leave/blob/main/docs/betrouwbaarheid.md)
+[Alles over nauwkeurigheid, kosten, privacy en wat niet getest is](https://github.com/vossov/commute-time/blob/main/docs/betrouwbaarheid.md)
 
 ## Veelgestelde vragen
+
+<details>
+
+<summary>Heette dit eerst Time to Leave?</summary>
+
+<br>
+
+Ja, tot versie 0.2.1. Die naam was al in gebruik door een andere app. Overstappen van Time to Leave vraagt één keer je routes opnieuw toevoegen; [de stappen staan bij versie 0.3.0](https://github.com/vossov/commute-time/blob/main/CHANGELOG.md).
+
+</details>
 
 <details>
 
@@ -182,7 +192,7 @@ actions:
 
 <br>
 
-Waze heeft geen openbare routing-API, en de voorwaarden van Waze verbieden geautomatiseerde toegang en het omzeilen van beveiliging. TomTom heeft wel een officiële API met een gratis sleutel, en kan zelf terugrekenen vanaf een aankomsttijd. Waze blijft in beeld voor het rijden zelf, via de officiële Waze-link. [De hele afweging, met bronnen](https://github.com/vossov/time-to-leave/blob/main/docs/waarom-tomtom.md).
+Waze heeft geen openbare routing-API, en de voorwaarden van Waze verbieden geautomatiseerde toegang en het omzeilen van beveiliging. TomTom heeft wel een officiële API met een gratis sleutel, en kan zelf terugrekenen vanaf een aankomsttijd. Waze blijft in beeld voor het rijden zelf, via de officiële Waze-link. [De hele afweging, met bronnen](https://github.com/vossov/commute-time/blob/main/docs/waarom-tomtom.md).
 
 </details>
 
@@ -202,7 +212,7 @@ Nee. Buiten het venster wordt de integratie hooguit eens per uur wakker om te ki
 
 <br>
 
-Het gratis plan van TomTom geeft 2.500 verzoeken per dag. Een route met een venster van 06:30 tot 09:30, elke 5 minuten en een aankomsttijd van 08:30 kost er 60 per dag, hoogstens 73. Drie routes blijven dus ruim eronder. [De berekening](https://github.com/vossov/time-to-leave/blob/main/docs/betrouwbaarheid.md#wat-het-kost).
+Het gratis plan van TomTom geeft 2.500 verzoeken per dag. Een route met een venster van 06:30 tot 09:30, elke 5 minuten en een aankomsttijd van 08:30 kost er 60 per dag, hoogstens 73. Drie routes blijven dus ruim eronder. [De berekening](https://github.com/vossov/commute-time/blob/main/docs/betrouwbaarheid.md#wat-het-kost).
 
 </details>
 
@@ -212,7 +222,7 @@ Het gratis plan van TomTom geeft 2.500 verzoeken per dag. Een route met een vens
 
 <br>
 
-Je adressen gaan naar TomTom, om op te zoeken en om de route te berekenen. Wat TomTom vindt wordt niet op schijf bewaard, alleen in het geheugen tot middernacht. De sleutel staat onversleuteld in de opslag van Home Assistant, zoals bij elke integratie, en dus ook in je back-ups; hij staat niet in de attributen, de kaart of het logboek. [Meer over privacy](https://github.com/vossov/time-to-leave/blob/main/docs/betrouwbaarheid.md#privacy-en-opslag).
+Je adressen gaan naar TomTom, om op te zoeken en om de route te berekenen. Wat TomTom vindt wordt niet op schijf bewaard, alleen in het geheugen tot middernacht. De sleutel staat onversleuteld in de opslag van Home Assistant, zoals bij elke integratie, en dus ook in je back-ups; hij staat niet in de attributen, de kaart of het logboek. [Meer over privacy](https://github.com/vossov/commute-time/blob/main/docs/betrouwbaarheid.md#privacy-en-opslag).
 
 </details>
 
@@ -222,12 +232,12 @@ Je adressen gaan naar TomTom, om op te zoeken en om de route te berekenen. Wat T
 
 <br>
 
-Dat minimum is nog niet vastgesteld: de eerste proef met alleen de Routing API en de Search API was te weinig. [Wat wel bekend is, en hoe je het minimum zelf vindt](https://github.com/vossov/time-to-leave/blob/main/docs/tomtom-sleutel.md).
+Dat minimum is nog niet vastgesteld: de eerste proef met alleen de Routing API en de Search API was te weinig. [Wat wel bekend is, en hoe je het minimum zelf vindt](https://github.com/vossov/commute-time/blob/main/docs/tomtom-sleutel.md).
 
 </details>
 
 ## Versies en hulp
 
-- **[Alle versies en wat er veranderd is](https://github.com/vossov/time-to-leave/blob/main/CHANGELOG.md)**. Elke versie krijgt vanzelf een release met die notes.
-- **Iets stuk, of een wens?** Maak een [issue](https://github.com/vossov/time-to-leave/issues) aan. Staat er een melding in de kaart, vermeld die dan, want op een telefoon is er geen logboek.
-- **Licentie**: [MIT](https://github.com/vossov/time-to-leave/blob/main/LICENSE).
+- **[Alle versies en wat er veranderd is](https://github.com/vossov/commute-time/blob/main/CHANGELOG.md)**. Elke versie krijgt vanzelf een release met die notes.
+- **Iets stuk, of een wens?** Maak een [issue](https://github.com/vossov/commute-time/issues) aan. Staat er een melding in de kaart, vermeld die dan, want op een telefoon is er geen logboek.
+- **Licentie**: [MIT](https://github.com/vossov/commute-time/blob/main/LICENSE).

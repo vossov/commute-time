@@ -70,7 +70,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # Herkenbaar, met een adres waar te zien is wat dit is — zoals in
 # cycling-next-race. Wie zich bij een bron meldt, hoort te zeggen wie hij is.
-AGENT = f"HomeAssistant-time-to-leave/{VERSION} (+https://github.com/vossov/time-to-leave)"
+AGENT = f"HomeAssistant-commute-time/{VERSION} (+https://github.com/vossov/commute-time)"
 
 # Getallen en hun grenzen; zie `_opt`.
 _GRENZEN = {

@@ -20,7 +20,7 @@ globalThis.HTMLElement = class {};
 globalThis.customElements = { get: () => undefined, define() {} };
 globalThis.window = globalThis;
 
-const kaart = await import('../custom_components/time_to_leave/www/time-to-leave-card.js');
+const kaart = await import('../custom_components/commute_time/www/commute-time-card.js');
 const staten = JSON.parse(readFileSync(new URL('./fixtures/sensor.json', import.meta.url), 'utf8'));
 
 // 07:34 op 17 november 2026, Amsterdam — het moment van de fixture

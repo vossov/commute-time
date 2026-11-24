@@ -27,8 +27,8 @@ import conftest  # noqa: E402  — stubt Home Assistant
 
 conftest._installeer_stubs()
 
-from time_to_leave import rooster, tomtom, uitvoer  # noqa: E402
-from time_to_leave.waze import waze_link  # noqa: E402
+from commute_time import rooster, tomtom, uitvoer  # noqa: E402
+from commute_time.waze import waze_link  # noqa: E402
 
 TZ = ZoneInfo("Europe/Amsterdam")
 NU = datetime(2026, 11, 17, 7, 34, tzinfo=TZ)

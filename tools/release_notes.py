@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 CHANGELOG = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
-REPO = os.environ.get("GITHUB_REPOSITORY", "vossov/time-to-leave")
+REPO = os.environ.get("GITHUB_REPOSITORY", "vossov/commute-time")
 
 # de kop van een versie; de streep is een gedachtestreep, zoals in het bestand
 KOP = re.compile(r"^## \[(\d+\.\d+\.\d+)\] — (\d{4}-\d{2}-\d{2})[ \t]*$", re.M)
@@ -75,7 +75,7 @@ def release_tekst(s: Sectie) -> str:
     return (
         s.tekst.strip()
         + "\n\n---\n\n"
-        + "**Bijwerken:** open HACS, kies *Time to Leave* en dan *Bijwerken*; "
+        + "**Bijwerken:** open HACS, kies *Commute Time* en dan *Bijwerken*; "
         + "herstart daarna Home Assistant.\n"
         + f"**Alle versies:** [CHANGELOG.md](https://github.com/{REPO}/blob/main/CHANGELOG.md)\n"
     )

@@ -16,7 +16,7 @@ import pytest
 WORTEL = Path(__file__).parent.parent
 SCRIPT = WORTEL / "tools" / "release_notes.py"
 CHANGELOG = WORTEL / "CHANGELOG.md"
-MANIFEST = WORTEL / "custom_components" / "time_to_leave" / "manifest.json"
+MANIFEST = WORTEL / "custom_components" / "commute_time" / "manifest.json"
 
 
 @pytest.fixture(scope="module")

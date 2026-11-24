@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 WORTEL = Path(__file__).parent.parent
-REPO = "vossov/time-to-leave"
+REPO = "vossov/commute-time"
 BLOB = f"https://github.com/{REPO}/blob/main/"
 RAW = f"https://raw.githubusercontent.com/{REPO}/main/"
 

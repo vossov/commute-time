@@ -1,4 +1,4 @@
-"""Gedeelde constanten voor Time to Leave.
+"""Gedeelde constanten voor Commute Time.
 
 Staat apart zodat `config_flow.py`, `__init__.py`, `coordinator.py` en
 `sensor.py` dezelfde sleutels en standaardwaarden gebruiken zonder elkaar
@@ -6,16 +6,16 @@ te importeren.
 """
 from __future__ import annotations
 
-DOMAIN = "time_to_leave"
-NAME = "Time to Leave"
+DOMAIN = "commute_time"
+NAME = "Commute Time"
 
 # Gelijk aan "version" in manifest.json en aan VERSIE bovenin de kaart.
 # Hangt achter de kaart-URL, zodat de browser na een update de nieuwe kaart
 # ophaalt. tests/test_repo.py bewaakt dat de drie niet uiteenlopen.
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 
 # De meegeleverde Lovelace-kaart, door de integratie zelf geregistreerd.
-KAART_BESTAND = "time-to-leave-card.js"
+KAART_BESTAND = "commute-time-card.js"
 KAART_URL = f"/{DOMAIN}/{KAART_BESTAND}"
 
 BRON = "TomTom"

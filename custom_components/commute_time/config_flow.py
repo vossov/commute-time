@@ -1,4 +1,4 @@
-"""Config flow voor Time to Leave.
+"""Config flow voor Commute Time.
 
 Toevoegen is één route: een naam, de TomTom-sleutel, het begin, eventueel
 tussenstops, en de bestemming. Daarna een bevestiging met de adressen zoals
@@ -235,7 +235,7 @@ def _puntenlijst(punten: list[Any]) -> str:
     return "\n".join(regels)
 
 
-class TimeToLeaveConfigFlow(ConfigFlow, domain=DOMAIN):
+class CommuteTimeConfigFlow(ConfigFlow, domain=DOMAIN):
     """Toevoegen via Instellingen → Apparaten & Services, één keer per route."""
 
     VERSION = 1
@@ -288,12 +288,12 @@ class TimeToLeaveConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry) -> TimeToLeaveOptionsFlow:
+    def async_get_options_flow(config_entry) -> CommuteTimeOptionsFlow:
         """Het optiescherm achter de knop Configureren."""
-        return TimeToLeaveOptionsFlow()
+        return CommuteTimeOptionsFlow()
 
 
-class TimeToLeaveOptionsFlow(OptionsFlow):
+class CommuteTimeOptionsFlow(OptionsFlow):
     """De route en het rooster aanpassen."""
 
     def __init__(self) -> None:

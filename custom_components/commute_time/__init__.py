@@ -1,4 +1,4 @@
-"""Time to Leave — rijtijd en vertrektijd voor je routes, op je dashboard.
+"""Commute Time — rijtijd en vertrektijd voor je routes, op je dashboard.
 
 Instellen gaat via de gebruikersinterface (Instellingen → Apparaten &
 Services → Integratie toevoegen), één keer per route. De Lovelace-kaart wordt

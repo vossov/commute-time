@@ -12,8 +12,8 @@ from pathlib import Path
 import pytest
 
 WORTEL = Path(__file__).parent.parent
-COMPONENT = WORTEL / "custom_components" / "time_to_leave"
-KAART = COMPONENT / "www" / "time-to-leave-card.js"
+COMPONENT = WORTEL / "custom_components" / "commute_time"
+KAART = COMPONENT / "www" / "commute-time-card.js"
 UITVOER = COMPONENT / "uitvoer.py"
 README = WORTEL / "README.md"
 
@@ -56,7 +56,7 @@ def test_het_kaartbestand_staat_waar_de_integratie_het_zoekt(const):
 
 def test_de_kaart_meldt_zich_maar_een_keer_aan(kaart_bron):
     """Een tweede `define` met dezelfde naam gooit, en dan stopt de module."""
-    for naam in ("time-to-leave-card", "time-to-leave-card-editor"):
+    for naam in ("commute-time-card", "commute-time-card-editor"):
         assert f"customElements.get('{naam}')" in kaart_bron
     assert "customCards.some(" in kaart_bron
 

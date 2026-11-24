@@ -1,4 +1,4 @@
-# CLAUDE.md — Time to Leave
+# CLAUDE.md — Commute Time
 
 Context voor Claude Code. Lees dit vóór je iets wijzigt.
 
@@ -9,10 +9,10 @@ files en de vertrektijd voor een gewenste aankomsttijd laat zien, met een
 eigen Lovelace-kaart. Bron: TomTom (Routing API + Search API, gratis
 sleutel).
 
-- Domein: `time_to_leave`
+- Domein: `commute_time` (tot v0.2.1: `time_to_leave`, zie "De naam")
 - Entiteiten per route: `sensor.<route>_reistijd` (minuten, met alle
   attributen voor de kaart) en `sensor.<route>_vertrektijd` (tijdstip)
-- Kaart: `custom:time-to-leave-card`
+- Kaart: `custom:commute-time-card`
 - Eén config entry per route; alles staat in `ConfigEntry.options`
 
 ## Werkafspraken
@@ -66,6 +66,29 @@ Dezelfde als in cycling-next-race en Stars:
   leesbare `fout`-tekst in de attributen, nooit een uitzondering naar
   boven. Op een telefoon is er geen logboek.
 
+## De naam
+
+Tot v0.2.1 heette dit **Time to Leave** (`time_to_leave`,
+`vossov/time-to-leave`). Op 24 november 2026 hernoemd naar **Commute Time**
+(`commute_time`, `custom:commute-time-card`, `vossov/commute-time`), op
+verzoek van de eigenaar. Overwogen en afgevallen:
+
+| naam | waarom niet |
+|---|---|
+| Time to Leave | al in gebruik door thamara/time-to-leave, een bekende app die werkuren bijhoudt (timetoleave.app) |
+| Travel Time | `custom:travel-time-card` bestaat al (ljmerza); twee kaarten met dezelfde elementnaam laden niet. TravelTime is ook een bedrijf met een reistijd-API |
+| TomTom/Google/Waze Travel Time | de eigenaar wil geen bron of merk in de naam |
+| Wayfinder, On Time | bestaan al als HA-project |
+
+Bij twee zoekopdrachten (forum, GitHub) vonden we geen Home Assistant-project
+dat Commute Time heet. In HACS zelf is dat niet nagekeken.
+**Kom niet terug op de naam** zonder dat de eigenaar erom vraagt. Een nieuw
+domein betekent dat iedereen zijn routes opnieuw moet toevoegen (zie
+CHANGELOG 0.3.0); dat doe je niet voor een iets mooiere naam.
+
+Oude vermeldingen van Time to Leave in de CHANGELOG blijven staan; dat is
+geschiedenis.
+
 ## Waarom TomTom en niet Waze
 
 De eigenaar vroeg om Waze. Op 16 november 2026 uitgezocht:
@@ -91,7 +114,7 @@ op tikt; er wordt niets bij Waze opgevraagd. Zie `waze.py`.
 ## Architectuur
 
 ```
-custom_components/time_to_leave/
+custom_components/commute_time/
   const.py        sleutels, standaardwaarden, grenzen
   tomtom.py       verzoeken bouwen en antwoorden lezen; geen HA
   rooster.py      venster per weekdag en het oordeel; geen HA
@@ -102,7 +125,7 @@ custom_components/time_to_leave/
   sensor.py       reistijd + vertrektijd
   config_flow.py  toevoegen (+ bevestigen wat TomTom vond) en het optiescherm
   __init__.py     opzetten, en de kaart registreren
-  www/time-to-leave-card.js
+  www/commute-time-card.js
 ```
 
 Daaromheen, in de root van de repo:
@@ -232,7 +255,7 @@ Bubble Card als voorbeeld van hoe het eruit hoort te zien. Daarom:
   (`tomtom-sleutel.md`, `waarom-tomtom.md`, `betrouwbaarheid.md`). Verplaats
   uitleg naar docs in plaats van de README te laten groeien.
 - **Alle links en afbeeldingen zijn volledige adressen naar `main`**
-  (`https://github.com/vossov/time-to-leave/blob/main/…`, `raw.githubusercontent.com`).
+  (`https://github.com/vossov/commute-time/blob/main/…`, `raw.githubusercontent.com`).
   Relatieve paden werken in HACS vaak niet. `tests/test_readme.py` controleert
   dat elk adres naar iets wijst dat er is, dat elk `#anker` een kop is, en dat
   elke `##`-kop in de inhoudsopgave staat.
@@ -301,9 +324,9 @@ vinkjes erbij horen.
 python3 -m pytest tests -q
 node --test tests/kaart.test.mjs
 npm install --no-save --silent acorn@8
-node tests/floor.mjs custom_components/time_to_leave/www/time-to-leave-card.js
-python3 -m compileall -q custom_components/time_to_leave
-python3 tools/release_notes.py "$(python3 -c "import json;print(json.load(open('custom_components/time_to_leave/manifest.json'))['version'])")" check
+node tests/floor.mjs custom_components/commute_time/www/commute-time-card.js
+python3 -m compileall -q custom_components/commute_time
+python3 tools/release_notes.py "$(python3 -c "import json;print(json.load(open('custom_components/commute_time/manifest.json'))['version'])")" check
 ```
 
 De laatste regel vraagt of de huidige versie een nette changelog-sectie heeft;

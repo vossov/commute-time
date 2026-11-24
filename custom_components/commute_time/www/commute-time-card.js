@@ -1,10 +1,10 @@
 /*
- * Time to Leave - Lovelace-kaart
+ * Commute Time - Lovelace-kaart
  *
  * Wordt door de integratie zelf geregistreerd; je hoeft niets aan resources
  * toe te voegen. Op je dashboard:
  *
- *   type: custom:time-to-leave-card
+ *   type: custom:commute-time-card
  *   entities:
  *     - sensor.naar_werk_reistijd
  *
@@ -39,7 +39,7 @@
  * omdat dit bestand statisch is: Home Assistant meldt de versie van de
  * Python-kant, en een browser kan een oudere kaart uit de cache draaien.
  * Het nummer staat in de console en onder in het bewerkscherm. */
-const VERSIE = '0.2.1';
+const VERSIE = '0.3.0';
 
 const VORMGEVING = [
   { value: 'default', label: 'Standaard (eigen opmaak)' },
@@ -454,7 +454,7 @@ function routeRij(id, st, config, nuMs) {
   if (s === 'unavailable' || (s === 'unknown' && !a.status)) {
     return '<div class="route"><div class="tekst"><div class="naam">' + esc(a.route || id) +
       '</div><div class="regel2">' + (s === 'unavailable' ? 'niet beschikbaar' : 'nog onbekend') +
-      ' — kijk in het logboek van Home Assistant op time_to_leave</div></div></div>';
+      ' — kijk in het logboek van Home Assistant op commute_time</div></div></div>';
   }
   const w = weergave(a, nuMs, config);
   // de kleur van het stipje (en in de Bubble-stijl van het icoon)
@@ -575,9 +575,9 @@ function detail(a, nuMs, config) {
 
 const TIK_MS = 30000;
 
-class TimeToLeaveCard extends HTMLElement {
+class CommuteTimeCard extends HTMLElement {
   static getConfigElement() {
-    return document.createElement('time-to-leave-card-editor');
+    return document.createElement('commute-time-card-editor');
   }
 
   static getStubConfig(hass) {
@@ -659,7 +659,7 @@ class TimeToLeaveCard extends HTMLElement {
       this._tikker = null;
       if (this._venster && this._venster.open) this._venster.close();
     } catch (err) {
-      console.error('time-to-leave-card: kon niet netjes opruimen', err);
+      console.error('commute-time-card: kon niet netjes opruimen', err);
     }
   }
 
@@ -751,7 +751,7 @@ class TimeToLeaveCard extends HTMLElement {
    * hetzelfde uit, en dan wordt er in de YAML gezocht. Dus: naam, versie en
    * de melding, in een kaal blokje dat niets nodig heeft van wat net faalde. */
   _fail(err, waar) {
-    console.error('time-to-leave-card: ' + waar, err);
+    console.error('commute-time-card: ' + waar, err);
     this._gebouwd = false;
     try {
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
@@ -760,11 +760,11 @@ class TimeToLeaveCard extends HTMLElement {
       this.shadowRoot.innerHTML =
         '<div style="padding:14px 16px;border-radius:12px;border-left:4px solid #fb8c00;' +
         'background:rgba(127,127,127,.12);color:var(--primary-text-color,#212121);font-size:13px;line-height:1.45">' +
-        '<b>Time to Leave kon niet tekenen</b><br>' +
+        '<b>Commute Time kon niet tekenen</b><br>' +
         '<span style="opacity:.75">Dit is geen fout in je configuratie; bij de volgende update probeert de kaart het opnieuw.</span><br>' +
         '<code style="font-size:11px;word-break:break-word">v' + esc(VERSIE) + ' · ' + esc(waar) + ': ' + esc(melding) + '</code></div>';
     } catch (genest) {
-      console.error('time-to-leave-card: ook dat melden lukte niet', genest);
+      console.error('commute-time-card: ook dat melden lukte niet', genest);
     }
   }
 }
@@ -772,7 +772,7 @@ class TimeToLeaveCard extends HTMLElement {
 /* Aanmelden mag maar één keer. Een tweede `define` met dezelfde naam gooit,
  * en dan stopt de module: de editor eronder komt dan niet meer aan bod. Dat
  * gebeurt als het bestand ook nog als resource is toegevoegd. */
-if (!customElements.get('time-to-leave-card')) customElements.define('time-to-leave-card', TimeToLeaveCard);
+if (!customElements.get('commute-time-card')) customElements.define('commute-time-card', CommuteTimeCard);
 
 /* ── visuele editor ──────────────────────────────────────────────── */
 
@@ -784,7 +784,7 @@ const VELDEN = [
     selector: {
       entity: {
         multiple: true,
-        filter: { integration: 'time_to_leave', domain: 'sensor', device_class: 'duration' },
+        filter: { integration: 'commute_time', domain: 'sensor', device_class: 'duration' },
       },
     },
   },
@@ -847,7 +847,7 @@ function keuzes(lijst, gekozen) {
   }).join('');
 }
 
-class TimeToLeaveCardEditor extends HTMLElement {
+class CommuteTimeCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = normaliseer(config);
     if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
@@ -869,7 +869,7 @@ class TimeToLeaveCardEditor extends HTMLElement {
     const config = normaliseer(waarden);
     this._config = config;
     const uit = {
-      type: 'custom:time-to-leave-card',
+      type: 'custom:commute-time-card',
       entities: config.entities,
       design: config.design,
       show: config.show,
@@ -887,7 +887,7 @@ class TimeToLeaveCardEditor extends HTMLElement {
   _teken() {
     if (!this.shadowRoot || !this._config) return;
     const editor = this;
-    const versie = '<div class="versie">Time to Leave-kaart v' + esc(VERSIE) + '</div>';
+    const versie = '<div class="versie">Commute Time-kaart v' + esc(VERSIE) + '</div>';
 
     if (customElements.get('ha-form')) {
       const form = document.createElement('ha-form');
@@ -946,22 +946,22 @@ class TimeToLeaveCardEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get('time-to-leave-card-editor')) {
-  customElements.define('time-to-leave-card-editor', TimeToLeaveCardEditor);
+if (!customElements.get('commute-time-card-editor')) {
+  customElements.define('commute-time-card-editor', CommuteTimeCardEditor);
 }
 
 window.customCards = window.customCards || [];
-if (!window.customCards.some(function (k) { return k.type === 'time-to-leave-card'; })) {
+if (!window.customCards.some(function (k) { return k.type === 'commute-time-card'; })) {
   window.customCards.push({
-    type: 'time-to-leave-card',
-    name: 'Time to Leave',
+    type: 'commute-time-card',
+    name: 'Commute Time',
     description: 'Reistijd en vertrektijd van je routes, met de files erop.',
     preview: false,
-    documentationURL: 'https://github.com/vossov/time-to-leave',
+    documentationURL: 'https://github.com/vossov/commute-time',
   });
 }
 
-console.info('%c TIME-TO-LEAVE-CARD %c v' + VERSIE + ' ', 'background:#2e7d32;color:#fff;border-radius:3px 0 0 3px', 'background:#444;color:#fff;border-radius:0 3px 3px 0');
+console.info('%c COMMUTE-TIME-CARD %c v' + VERSIE + ' ', 'background:#2e7d32;color:#fff;border-radius:3px 0 0 3px', 'background:#444;color:#fff;border-radius:0 3px 3px 0');
 
 export {
   VERSIE,

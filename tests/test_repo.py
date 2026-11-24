@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 WORTEL = Path(__file__).parent.parent
-COMPONENT = WORTEL / "custom_components" / "time_to_leave"
+COMPONENT = WORTEL / "custom_components" / "commute_time"
 MANIFEST = COMPONENT / "manifest.json"
 HACS_JSON = WORTEL / "hacs.json"
 STRINGS = COMPONENT / "strings.json"
