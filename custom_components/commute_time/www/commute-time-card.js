@@ -20,9 +20,10 @@
  *   target    false (standaard): de ingevoerde aankomsttijd en marge staan er
  *             niet. true toont ze, onder de naam en in het venster
  *   details   true (standaard) opent bij een tik het detailvenster
- *   waze      true (standaard) zet een knop "Rijden met Waze" bij de route
+ *   waze      true (standaard) zet een knop "Drive with Waze" bij de route
+ *   language  'en' (standaard) of 'nl': de taal van de kaart en de editor
  *
- * Bovenaan staat met een aankomsttijd de vertrektijd ("Vertrek 07:52"), en
+ * Bovenaan staat met een aankomsttijd de vertrektijd ("Leave 07:52"), en
  * zonder aankomsttijd de rijtijd ("34 min"). Een aankomsttijd invullen is
  * optioneel en gaat per weekdag in het rooster van de route.
  *
@@ -39,19 +40,164 @@
  * omdat dit bestand statisch is: Home Assistant meldt de versie van de
  * Python-kant, en een browser kan een oudere kaart uit de cache draaien.
  * Het nummer staat in de console en onder in het bewerkscherm. */
-const VERSIE = '0.3.0';
+const VERSIE = '0.4.0';
 
-const VORMGEVING = [
-  { value: 'default', label: 'Standaard (eigen opmaak)' },
-  { value: 'ha', label: 'Home Assistant-thema' },
-  { value: 'bubble', label: 'Bubble-stijl' },
+/* De talen van de kaart. Engels is de standaard: de documentatie is Engels,
+ * en wie niets kiest krijgt dezelfde taal als in de README. */
+const TALEN = ['en', 'nl'];
+const TAAL = [
+  { value: 'en', label: 'English' },
+  { value: 'nl', label: 'Nederlands' },
 ];
-const VORMGEVING_SLEUTELS = VORMGEVING.map(function (v) { return v.value; });
 
-const TONEN = [
-  { value: 'window', label: 'Alleen binnen het venster' },
-  { value: 'always', label: 'Altijd' },
-];
+/* Alle tekst op de kaart en in de editor, per taal. {naam} wordt ingevuld
+ * door t(). Een sleutel die in de ene taal staat en in de andere niet, laat
+ * tests/kaart.test.mjs falen. */
+const TEKST = {
+  en: {
+    vorm_default: 'Default (own style)', vorm_ha: 'Home Assistant theme', vorm_bubble: 'Bubble style',
+    toon_window: 'Only within the window', toon_always: 'Always',
+    uur: 'h', kmh: 'km/h', decimaal: '.',
+    geen_antwoord: 'TomTom gave no answer',
+    weer_in_beeld: 'Shown again {wanneer}',
+    geen_venster: 'No window set in the schedule',
+    vandaag: 'today', morgen: 'tomorrow',
+    dagen: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    vertrek: 'Leave', nu: 'now',
+    te_laat: '{n} min late', te_laat_kaal: 'Late',
+    rijden: '{t} driving', via: 'via', file: '{t} in traffic',
+    voor: 'by {tijd}', marge_kort: ', {n} min margin',
+    rijtijd_nu: 'Driving time with current traffic',
+    venster_vandaag: 'Window today {van}–{tot}', bron_groot: 'Source: {bron}',
+    h_reistijd: 'Travel time', f_nu: 'Now', f_gebruikelijk: 'Usual at this hour',
+    f_vrij: 'Without traffic', f_verwacht: 'Expected when leaving at {t}',
+    f_afstand: 'Distance', f_aankomst: 'Arrival if you leave now',
+    h_op_tijd: 'Arriving on time', h_vertrek: 'Departure',
+    f_aankomen: 'Arrive at', f_marge: 'Margin', f_stoptijd: 'Stop time', f_vertrekken: 'Leave at',
+    h_route: 'Route', h_files: 'Traffic and delays', geen_files: 'TomTom reports nothing on this route.',
+    cat_JAM: 'traffic jam', cat_ROAD_WORK: 'roadworks', cat_ROAD_CLOSURE: 'road closure', cat_OTHER: 'delay',
+    op_weg: '{wat} on the {weg}',
+    h_etappes: 'Legs', h_andere: 'Other routes', andere_route: 'other route',
+    start: 'Start', bestemming: 'Destination', stop: 'Stop {i}',
+    h_adressen: 'Addresses as found',
+    bijgewerkt: 'Updated {t}', bron: 'source: {bron}', kaart_v: 'card v{v}',
+    waze_lang: 'Drive with Waze',
+    bestaat_niet: 'does not exist; pick the travel time sensor of a route',
+    niet_beschikbaar: 'unavailable', nog_onbekend: 'not known yet',
+    kijk_log: ' — check the Home Assistant log for commute_time',
+    kies_route: 'Pick the travel time sensor of a route in the editor.',
+    sluiten: 'Close',
+    faal_kop: 'Commute Time could not render',
+    faal_uitleg: 'This is not an error in your configuration; the card tries again on the next update.',
+    editor_versie: 'Commute Time card v{v}',
+    l_entities: 'Routes', u_entities: 'The travel time sensors of your routes, in the order they appear on the card.',
+    u_entities_kaal: 'Travel time sensors, one per line.',
+    l_title: 'Title', u_title: 'Empty means no title.',
+    l_design: 'Design', u_design: 'Own style, the Home Assistant theme, or in the style of Bubble Card.',
+    l_show: 'Show', u_show: 'Only within the window from the route\'s schedule, or always.',
+    l_target: 'Show arrival time and margin',
+    u_target: 'The arrival time and margin you entered yourself. Off: only the departure time, or the driving time if you set no arrival time.',
+    l_details: 'Details on tap', u_details: 'Traffic, other routes, legs and the addresses as TomTom found them.',
+    l_waze: 'Button "Drive with Waze"', u_waze: 'Opens Waze with the destination; Waze works out the route from where you are.',
+    l_language: 'Language', u_language: 'The language of the card and this editor.',
+    fout_geweigerd: 'TomTom refuses the key{voor} (403): invalid, not enabled for this product, or the daily quota is used up',
+    fout_voor_search: ' for the Search API', fout_voor_routing: ' for the Routing API',
+    fout_te_vaak: 'TomTom is getting too many requests for this key (429)',
+    fout_geen_route: 'TomTom cannot find a route between these points (400)',
+    fout_status: 'TomTom answered with {status}',
+    fout_onverwacht: 'TomTom sent an unexpected answer',
+    fout_time_out: 'TomTom did not answer within {seconden} seconds',
+    fout_onbereikbaar: 'TomTom unreachable: {detail}',
+    fout_geen_adres: 'TomTom finds no address for “{adres}”',
+    fout_geen_locatie: '{entiteit} has no location right now',
+    fout_geen_routes: 'TomTom returned no route',
+  },
+  nl: {
+    vorm_default: 'Standaard (eigen opmaak)', vorm_ha: 'Home Assistant-thema', vorm_bubble: 'Bubble-stijl',
+    toon_window: 'Alleen binnen het venster', toon_always: 'Altijd',
+    uur: 'u', kmh: 'km/u', decimaal: ',',
+    geen_antwoord: 'TomTom gaf geen antwoord',
+    weer_in_beeld: 'Weer in beeld {wanneer}',
+    geen_venster: 'Geen venster ingesteld in het rooster',
+    vandaag: 'vandaag', morgen: 'morgen',
+    dagen: ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
+    vertrek: 'Vertrek', nu: 'nu',
+    te_laat: '{n} min te laat', te_laat_kaal: 'Te laat',
+    rijden: '{t} rijden', via: 'via', file: '{t} file',
+    voor: 'voor {tijd}', marge_kort: ', {n} min marge',
+    rijtijd_nu: 'Rijtijd met het verkeer van nu',
+    venster_vandaag: 'Venster vandaag {van}–{tot}', bron_groot: 'Bron: {bron}',
+    h_reistijd: 'Reistijd', f_nu: 'Nu', f_gebruikelijk: 'Gebruikelijk op dit uur',
+    f_vrij: 'Zonder verkeer', f_verwacht: 'Verwacht bij vertrek om {t}',
+    f_afstand: 'Afstand', f_aankomst: 'Aankomst als je nu vertrekt',
+    h_op_tijd: 'Op tijd zijn', h_vertrek: 'Vertrek',
+    f_aankomen: 'Aankomen om', f_marge: 'Marge', f_stoptijd: 'Stoptijd', f_vertrekken: 'Vertrekken om',
+    h_route: 'Route', h_files: 'Files en hinder', geen_files: 'TomTom meldt niets op deze route.',
+    cat_JAM: 'file', cat_ROAD_WORK: 'werk in uitvoering', cat_ROAD_CLOSURE: 'afsluiting', cat_OTHER: 'hinder',
+    op_weg: '{wat} op de {weg}',
+    h_etappes: 'Etappes', h_andere: 'Andere routes', andere_route: 'andere route',
+    start: 'Start', bestemming: 'Bestemming', stop: 'Stop {i}',
+    h_adressen: 'Adressen zoals gevonden',
+    bijgewerkt: 'Bijgewerkt {t}', bron: 'bron: {bron}', kaart_v: 'kaart v{v}',
+    waze_lang: 'Rijden met Waze',
+    bestaat_niet: 'bestaat niet; kies de reistijd-sensor van een route',
+    niet_beschikbaar: 'niet beschikbaar', nog_onbekend: 'nog onbekend',
+    kijk_log: ' — kijk in het logboek van Home Assistant op commute_time',
+    kies_route: 'Kies in de editor de reistijd-sensor van een route.',
+    sluiten: 'Sluiten',
+    faal_kop: 'Commute Time kon niet tekenen',
+    faal_uitleg: 'Dit is geen fout in je configuratie; bij de volgende update probeert de kaart het opnieuw.',
+    editor_versie: 'Commute Time-kaart v{v}',
+    l_entities: 'Routes', u_entities: 'De reistijd-sensoren van je routes, in de volgorde waarin ze op de kaart staan.',
+    u_entities_kaal: 'Reistijd-sensoren, één per regel.',
+    l_title: 'Kop', u_title: 'Leeg is geen kop.',
+    l_design: 'Vormgeving', u_design: 'Eigen opmaak, het thema van Home Assistant, of in de stijl van Bubble Card.',
+    l_show: 'Tonen', u_show: 'Alleen binnen het venster uit het rooster van de route, of altijd.',
+    l_target: 'Aankomsttijd en marge tonen',
+    u_target: 'De aankomsttijd en marge die je zelf hebt ingevoerd. Uit: alleen de vertrektijd, of de rijtijd als je geen aankomsttijd hebt ingesteld.',
+    l_details: 'Detailvenster bij aantikken', u_details: 'Files, andere routes, etappes en de adressen zoals TomTom ze vond.',
+    l_waze: 'Knop "Rijden met Waze"', u_waze: 'Opent Waze met de bestemming; Waze rekent zelf de route vanaf waar je bent.',
+    l_language: 'Taal', u_language: 'De taal van de kaart en van deze editor.',
+    fout_geweigerd: 'TomTom weigert de sleutel{voor} (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op',
+    fout_voor_search: ' voor de Search API', fout_voor_routing: ' voor de Routing API',
+    fout_te_vaak: 'TomTom krijgt te veel verzoeken voor deze sleutel (429)',
+    fout_geen_route: 'TomTom kan hier geen route tussen leggen (400)',
+    fout_status: 'TomTom antwoordde met {status}',
+    fout_onverwacht: 'TomTom stuurde een onverwacht antwoord',
+    fout_time_out: 'TomTom antwoordde niet binnen {seconden} seconden',
+    fout_onbereikbaar: 'TomTom niet bereikbaar: {detail}',
+    fout_geen_adres: 'TomTom vindt geen adres bij “{adres}”',
+    fout_geen_locatie: '{entiteit} heeft nu geen locatie',
+    fout_geen_routes: 'TomTom gaf geen route terug',
+  },
+};
+
+/** De tekst onder `sleutel` in de taal van de configuratie, met {naam}
+ * ingevuld. Een onbekende taal wordt Engels, een onbekende sleutel de sleutel
+ * zelf: liever een rare tekst dan een kaart die gooit. */
+function t(taal, sleutel, waarden) {
+  const tabel = TEKST[taal] || TEKST.en;
+  const tekst = sleutel in tabel ? tabel[sleutel] : (sleutel in TEKST.en ? TEKST.en[sleutel] : sleutel);
+  if (typeof tekst !== 'string') return tekst;
+  return tekst.replace(/\{(\w+)\}/g, function (heel, naam) {
+    return waarden && waarden[naam] != null ? String(waarden[naam]) : '';
+  });
+}
+
+/** De taal uit een (genormaliseerde) configuratie. */
+function taalVan(config) {
+  return config && TALEN.indexOf(config.language) >= 0 ? config.language : 'en';
+}
+
+const VORMGEVING_SLEUTELS = ['default', 'ha', 'bubble'];
+function vormgeving(taal) {
+  return VORMGEVING_SLEUTELS.map(function (v) { return { value: v, label: t(taal, 'vorm_' + v) }; });
+}
+const VORMGEVING = vormgeving('en');
+
+function tonen(taal) {
+  return ['window', 'always'].map(function (v) { return { value: v, label: t(taal, 'toon_' + v) }; });
+}
 
 /* Wanneer een route druk heet. Dit is een keuze van de kaart, geen meting:
  * TomTom geeft de vertraging ten opzichte van een lege weg, en daar hangt
@@ -77,19 +223,20 @@ function getal(waarde) {
   return typeof waarde === 'number' && isFinite(waarde) ? waarde : null;
 }
 
-/** `34 min`, `1 u 12 min`. */
-function minuten(n) {
+/** `34 min`, `1 h 12 min` (of `1 u 12 min` in het Nederlands). */
+function minuten(n, taal) {
   const m = getal(n);
   if (m === null) return '';
   if (m < 60) return Math.round(m) + ' min';
+  const uur = t(taal, 'uur');
   const u = Math.floor(m / 60);
   const rest = Math.round(m - u * 60);
-  return rest ? u + ' u ' + rest + ' min' : u + ' u';
+  return rest ? u + ' ' + uur + ' ' + rest + ' min' : u + ' ' + uur;
 }
 
-function km(n) {
+function km(n, taal) {
   const k = getal(n);
-  return k === null ? '' : String(k).replace('.', ',') + ' km';
+  return k === null ? '' : String(k).replace('.', t(taal, 'decimaal')) + ' km';
 }
 
 /** De configuratie, met onzin teruggezet. Mag nooit gooien: Home Assistant
@@ -118,6 +265,8 @@ function normaliseer(config) {
     target: g.target === true,
     details: g.details !== false,
     waze: g.waze !== false,
+    // standaard Engels; alleen een taal die de kaart kent telt
+    language: TALEN.indexOf(String(g.language)) >= 0 ? String(g.language) : 'en',
   };
 }
 
@@ -138,8 +287,39 @@ function drukte(a) {
 const PUNT = ' · ';
 
 /** `via A12 · A27`, of leeg. */
-function wegen(a) {
-  return Array.isArray(a.via) && a.via.length ? 'via ' + a.via.map(String).join(PUNT) : '';
+function wegen(a, taal) {
+  return Array.isArray(a.via) && a.via.length ? t(taal, 'via') + ' ' + a.via.map(String).join(PUNT) : '';
+}
+
+/** De foutmelding in de gekozen taal. Met een code uit tomtom.FOUTCODES
+ * maakt de kaart de zin zelf; zonder code (een oudere integratie, of iets
+ * onvoorziens) staat de tekst van de sensor er zoals hij is. */
+function foutTekst(a, taal) {
+  const code = a.fout_code ? String(a.fout_code) : '';
+  const p = a.fout_param && typeof a.fout_param === 'object' ? a.fout_param : {};
+  if (!code || !(('fout_' + code) in TEKST.en)) return a.fout ? String(a.fout) : t(taal, 'geen_antwoord');
+  if (code === 'geweigerd') {
+    const voor = p.dienst === 'search' || p.dienst === 'routing' ? t(taal, 'fout_voor_' + p.dienst) : '';
+    return t(taal, 'fout_geweigerd', { voor: voor }) + (p.detail ? '. ' + p.detail : '');
+  }
+  // TomTom's eigen uitleg bij een 400 is beter dan onze algemene zin
+  if (code === 'geen_route' && p.detail) return String(p.detail);
+  return t(taal, 'fout_' + code, p);
+}
+
+/** "tomorrow 06:30": wanneer de route weer in beeld komt. Uit de taalloze
+ * velden als de sensor die heeft, anders de Nederlandse tekst van de sensor. */
+function wanneer(a, taal) {
+  const dagen = getal(a.volgend_venster_dagen);
+  const weekdag = getal(a.volgend_venster_weekdag);
+  if (a.volgend_venster_hhmm && dagen !== null) {
+    let dag = '';
+    if (dagen === 0) dag = t(taal, 'vandaag');
+    else if (dagen === 1) dag = t(taal, 'morgen');
+    else if (weekdag !== null && weekdag >= 0 && weekdag < 7) dag = t(taal, 'dagen')[weekdag];
+    return (dag ? dag + ' ' : '') + a.volgend_venster_hhmm;
+  }
+  return a.volgend_venster_tekst ? String(a.volgend_venster_tekst) : '';
 }
 
 /** Minuten tot een ISO-tijdstip, naar boven afgerond; null zonder tijdstip. */
@@ -178,21 +358,21 @@ function fileMinuten(a) {
  * is, ook als de sensor nog niet ververst heeft.
  */
 function weergave(a, nuMs, config) {
+  const taal = taalVan(config);
   const status = String(a.status || '');
   if (status === 'fout') {
-    return { hoofd: null, soort: 'fout', regel: a.fout ? String(a.fout) : 'TomTom gaf geen antwoord' };
+    return { hoofd: null, soort: 'fout', regel: foutTekst(a, taal) };
   }
   if (status === 'buiten_venster') {
+    const terug = wanneer(a, taal);
     return {
       hoofd: null,
       soort: 'normaal',
-      regel: a.volgend_venster_tekst
-        ? 'Weer in beeld ' + a.volgend_venster_tekst
-        : 'Geen venster ingesteld in het rooster',
+      regel: terug ? t(taal, 'weer_in_beeld', { wanneer: terug }) : t(taal, 'geen_venster'),
     };
   }
 
-  const reistijd = minuten(a.reistijd_min);
+  const reistijd = minuten(a.reistijd_min, taal);
   let hoofd = null;
   let soort = 'normaal';
   let kop = '';
@@ -204,12 +384,12 @@ function weergave(a, nuMs, config) {
       const over = minutenTot(a.vertrek, nuMs);
       nu = over !== null && over <= 0;
     }
-    const waarde = nu ? 'nu' : String(a.vertrek_hhmm || '');
-    if (waarde) hoofd = { label: 'Vertrek', waarde: waarde };
+    const waarde = nu ? t(taal, 'nu') : String(a.vertrek_hhmm || '');
+    if (waarde) hoofd = { label: t(taal, 'vertrek'), waarde: waarde };
     if (nu) soort = 'let_op';
     if (status === 'te_laat') {
       soort = 'te_laat';
-      kop = getal(a.te_laat_min) !== null ? vast(a.te_laat_min + ' min te laat') : 'Te laat';
+      kop = getal(a.te_laat_min) !== null ? vast(t(taal, 'te_laat', { n: a.te_laat_min })) : t(taal, 'te_laat_kaal');
     }
   }
   // zonder aankomsttijd (of zonder vertrektijd) is de rijtijd het hoofdgetal
@@ -217,15 +397,16 @@ function weergave(a, nuMs, config) {
 
   const delen = [];
   if (kop) delen.push(kop);
-  if (hoofd && hoofd.label && reistijd) delen.push(vast(reistijd + ' rijden'));
-  const via = wegen(a);
+  if (hoofd && hoofd.label && reistijd) delen.push(vast(t(taal, 'rijden', { t: reistijd })));
+  const via = wegen(a, taal);
   if (via) delen.push(via);
   const file = fileMinuten(a);
-  if (file > 0) delen.push(vast(minuten(file) + ' file'));
+  if (file > 0) delen.push(vast(t(taal, 'file', { t: minuten(file, taal) })));
   if (config && config.target && a.doel_hhmm && status !== 'doel_voorbij') {
-    delen.push('voor ' + a.doel_hhmm + (getal(a.marge_min) ? ', ' + a.marge_min + ' min marge' : ''));
+    delen.push(t(taal, 'voor', { tijd: a.doel_hhmm }) +
+      (getal(a.marge_min) ? t(taal, 'marge_kort', { n: a.marge_min }) : ''));
   }
-  if (!delen.length) delen.push('Rijtijd met het verkeer van nu');
+  if (!delen.length) delen.push(t(taal, 'rijtijd_nu'));
 
   return { hoofd: hoofd, soort: soort, regel: delen.join(PUNT) };
 }
@@ -435,26 +616,28 @@ const STIJL = `
 
 /* ── stukjes HTML ────────────────────────────────────────────────── */
 
-function wazeKnop(url, tekst) {
+function wazeKnop(url, tekst, taal) {
   if (!url || String(url).indexOf('https://waze.com/ul?') !== 0) return '';
-  const naam = tekst || 'Rijden met Waze';
+  const lang = t(taal, 'waze_lang');
+  const naam = tekst || lang;
   return '<a class="waze" data-waze="1" href="' + esc(url) + '" target="_blank" rel="noopener"' +
-    ' title="Rijden met Waze" aria-label="Rijden met Waze">' +
+    ' title="' + esc(lang) + '" aria-label="' + esc(lang) + '">' +
     '<ha-icon icon="mdi:navigation-variant"></ha-icon><span class="wtekst">' + esc(naam) + '</span></a>';
 }
 
 function routeRij(id, st, config, nuMs) {
+  const taal = taalVan(config);
   const klik = config.details ? ' klik' : '';
   if (!st) {
     return '<div class="route"><div class="tekst"><div class="naam">' + esc(id) +
-      '</div><div class="regel2">bestaat niet; kies de reistijd-sensor van een route</div></div></div>';
+      '</div><div class="regel2">' + esc(t(taal, 'bestaat_niet')) + '</div></div></div>';
   }
   const a = st.attributes || {};
   const s = String(st.state);
   if (s === 'unavailable' || (s === 'unknown' && !a.status)) {
     return '<div class="route"><div class="tekst"><div class="naam">' + esc(a.route || id) +
-      '</div><div class="regel2">' + (s === 'unavailable' ? 'niet beschikbaar' : 'nog onbekend') +
-      ' — kijk in het logboek van Home Assistant op commute_time</div></div></div>';
+      '</div><div class="regel2">' + esc(t(taal, s === 'unavailable' ? 'niet_beschikbaar' : 'nog_onbekend') +
+      t(taal, 'kijk_log')) + '</div></div></div>';
   }
   const w = weergave(a, nuMs, config);
   // de kleur van het stipje (en in de Bubble-stijl van het icoon)
@@ -465,8 +648,8 @@ function routeRij(id, st, config, nuMs) {
     ? '<div class="hoofd">' + (w.hoofd.label ? '<span class="lab">' + esc(w.hoofd.label) + '</span>' : '') +
       '<span class="waarde">' + esc(w.hoofd.waarde) + '</span></div>'
     : '';
-  // kort op de tegel; in het venster staat "Rijden met Waze" voluit
-  const knop = config.waze && a.in_venster ? wazeKnop(a.waze_url, 'Waze') : '';
+  // kort op de tegel; in het venster staat "Drive with Waze" voluit
+  const knop = config.waze && a.in_venster ? wazeKnop(a.waze_url, 'Waze', taal) : '';
   return '<div class="route' + klik + ' t-' + toon + '" data-route="' + esc(id) + '">' +
     '<div class="icoon"><ha-icon icon="mdi:car-clock"></ha-icon><span class="stip"></span></div>' +
     '<div class="tekst"><div class="naam">' + esc(a.route || id) + '</div>' +
@@ -482,12 +665,13 @@ function feit(links, rechts) {
 
 /** De inhoud van het detailvenster voor één route. */
 function detail(a, nuMs, config) {
+  const taal = taalVan(config);
   const toonDoel = Boolean(config && config.target);
   const w = weergave(a, nuMs, config);
   const delen = [];
   if (w.hoofd) {
     delen.push('<div class="groot">' +
-      esc(w.hoofd.label ? w.hoofd.label + ' ' + w.hoofd.waarde : w.hoofd.waarde + ' rijden') + '</div>');
+      esc(w.hoofd.label ? w.hoofd.label + ' ' + w.hoofd.waarde : t(taal, 'rijden', { t: w.hoofd.waarde })) + '</div>');
     delen.push('<div class="sub">' + esc(w.regel) + '</div>');
   } else {
     delen.push('<div class="groot">' + esc(w.regel) + '</div>');
@@ -495,79 +679,85 @@ function detail(a, nuMs, config) {
 
   if (a.status === 'fout' || a.status === 'buiten_venster') {
     if (a.venster_van && a.venster_tot) {
-      delen.push('<div class="sub">Venster vandaag ' + esc(a.venster_van) + '–' + esc(a.venster_tot) + '</div>');
+      delen.push('<div class="sub">' + esc(t(taal, 'venster_vandaag', { van: a.venster_van, tot: a.venster_tot })) + '</div>');
     }
-    delen.push('<div class="voet">Bron: ' + esc(a.bron || 'TomTom') + '</div>');
+    delen.push('<div class="voet">' + esc(t(taal, 'bron_groot', { bron: a.bron || 'TomTom' })) + '</div>');
     return delen.join('');
   }
 
   const reistijd = [
-    feit('Nu', minuten(a.reistijd_min)),
-    feit('Gebruikelijk op dit uur', minuten(a.normaal_min)),
-    feit('Zonder verkeer', minuten(a.vrij_min)),
+    feit(t(taal, 'f_nu'), minuten(a.reistijd_min, taal)),
+    feit(t(taal, 'f_gebruikelijk'), minuten(a.normaal_min, taal)),
+    feit(t(taal, 'f_vrij'), minuten(a.vrij_min, taal)),
     a.vertrek_hhmm && getal(a.reistijd_bij_vertrek_min) !== null
-      ? feit('Verwacht bij vertrek om ' + a.vertrek_hhmm, minuten(a.reistijd_bij_vertrek_min))
+      ? feit(t(taal, 'f_verwacht', { t: a.vertrek_hhmm }), minuten(a.reistijd_bij_vertrek_min, taal))
       : '',
-    feit('Afstand', km(a.afstand_km)),
-    feit('Aankomst als je nu vertrekt', a.aankomst_hhmm || ''),
+    feit(t(taal, 'f_afstand'), km(a.afstand_km, taal)),
+    feit(t(taal, 'f_aankomst'), a.aankomst_hhmm || ''),
   ].join('');
-  delen.push('<section><h3>Reistijd</h3><ul>' + reistijd + '</ul></section>');
+  delen.push('<section><h3>' + esc(t(taal, 'h_reistijd')) + '</h3><ul>' + reistijd + '</ul></section>');
 
   // de ingevoerde aankomsttijd en marge alleen als de kaart dat vraagt
   if (a.doel_hhmm) {
     const plan = [
-      toonDoel ? feit('Aankomen om', a.doel_hhmm) : '',
-      toonDoel && getal(a.marge_min) !== null ? feit('Marge', a.marge_min + ' min') : '',
-      getal(a.stops) ? feit('Stoptijd', a.stops + ' × ' + a.stoptijd_min + ' min') : '',
-      feit('Vertrekken om', a.vertrek_hhmm || ''),
+      toonDoel ? feit(t(taal, 'f_aankomen'), a.doel_hhmm) : '',
+      toonDoel && getal(a.marge_min) !== null ? feit(t(taal, 'f_marge'), a.marge_min + ' min') : '',
+      getal(a.stops) ? feit(t(taal, 'f_stoptijd'), a.stops + ' × ' + a.stoptijd_min + ' min') : '',
+      feit(t(taal, 'f_vertrekken'), a.vertrek_hhmm || ''),
     ].join('');
-    if (plan) delen.push('<section><h3>' + (toonDoel ? 'Op tijd zijn' : 'Vertrek') + '</h3><ul>' + plan + '</ul></section>');
+    if (plan) delen.push('<section><h3>' + esc(t(taal, toonDoel ? 'h_op_tijd' : 'h_vertrek')) + '</h3><ul>' + plan + '</ul></section>');
   }
 
-  if (wegen(a)) delen.push('<section><h3>Route</h3><ul><li><span class="l">' + esc(wegen(a)) + '</span></li></ul></section>');
+  const via = wegen(a, taal);
+  if (via) delen.push('<section><h3>' + esc(t(taal, 'h_route')) + '</h3><ul><li><span class="l">' + esc(via) + '</span></li></ul></section>');
 
   if (Array.isArray(a.files)) {
     const files = a.files.map(function (f) {
-      const wat = (f.soort || 'hinder') + (f.weg ? ' op de ' + f.weg : '');
+      // de categorie van TomTom in de gekozen taal; een oudere sensor zonder
+      // categorie geeft alleen zijn Nederlandse woord
+      const soort = f.categorie && ('cat_' + f.categorie) in TEKST.en
+        ? t(taal, 'cat_' + f.categorie)
+        : (f.soort || t(taal, 'cat_OTHER'));
+      const wat = f.weg ? t(taal, 'op_weg', { wat: soort, weg: f.weg }) : soort;
       const extra = [];
-      if (getal(f.snelheid_kmh) !== null) extra.push(f.snelheid_kmh + ' km/u');
-      if (getal(f.vertraging_min) !== null) extra.push('+' + minuten(f.vertraging_min));
+      if (getal(f.snelheid_kmh) !== null) extra.push(f.snelheid_kmh + ' ' + t(taal, 'kmh'));
+      if (getal(f.vertraging_min) !== null) extra.push('+' + minuten(f.vertraging_min, taal));
       return feit(wat, extra.join(' · '));
     }).join('');
-    delen.push('<section><h3>Files en hinder</h3><ul>' +
-      (files || '<li><span class="l">TomTom meldt niets op deze route.</span></li>') + '</ul></section>');
+    delen.push('<section><h3>' + esc(t(taal, 'h_files')) + '</h3><ul>' +
+      (files || '<li><span class="l">' + esc(t(taal, 'geen_files')) + '</span></li>') + '</ul></section>');
   }
 
   if (Array.isArray(a.etappes) && a.etappes.length) {
     const etappes = a.etappes.map(function (e) {
       return '<li><span class="l">' + esc(e.van) + ' → ' + esc(e.naar) + '</span><span class="r">' +
-        esc(minuten(e.reistijd_min)) + '</span>' + (config && config.waze ? wazeKnop(e.waze_url, 'Waze') : '') + '</li>';
+        esc(minuten(e.reistijd_min, taal)) + '</span>' + (config && config.waze ? wazeKnop(e.waze_url, 'Waze', taal) : '') + '</li>';
     }).join('');
-    delen.push('<section><h3>Etappes</h3><ul>' + etappes + '</ul></section>');
+    delen.push('<section><h3>' + esc(t(taal, 'h_etappes')) + '</h3><ul>' + etappes + '</ul></section>');
   }
 
   if (Array.isArray(a.alternatieven) && a.alternatieven.length) {
     const andere = a.alternatieven.map(function (r) {
-      const via = Array.isArray(r.via) && r.via.length ? 'via ' + r.via.join(' · ') : 'andere route';
+      const langs = Array.isArray(r.via) && r.via.length ? t(taal, 'via') + ' ' + r.via.join(' · ') : t(taal, 'andere_route');
       const verschil = getal(r.verschil_min);
-      return feit(via, minuten(r.reistijd_min) + (verschil !== null ? ' (+' + verschil + ')' : ''));
+      return feit(langs, minuten(r.reistijd_min, taal) + (verschil !== null ? ' (+' + verschil + ')' : ''));
     }).join('');
-    delen.push('<section><h3>Andere routes</h3><ul>' + andere + '</ul></section>');
+    delen.push('<section><h3>' + esc(t(taal, 'h_andere')) + '</h3><ul>' + andere + '</ul></section>');
   }
 
   if (Array.isArray(a.punten) && a.punten.length) {
     const punten = a.punten.map(function (p, i) {
-      const rol = i === 0 ? 'Start' : (i === a.punten.length - 1 ? 'Bestemming' : 'Stop ' + i);
+      const rol = i === 0 ? t(taal, 'start') : (i === a.punten.length - 1 ? t(taal, 'bestemming') : t(taal, 'stop', { i: i }));
       const gevonden = p.soort === 'adres' && p.gevonden !== p.invoer ? p.gevonden : '';
       return '<li><span class="l">' + esc(rol) + ': ' + esc(p.soort === 'entiteit' ? p.gevonden : p.invoer) +
         (gevonden ? ' → ' + esc(gevonden) : '') + '</span></li>';
     }).join('');
-    delen.push('<section><h3>Adressen zoals gevonden</h3><ul>' + punten + '</ul></section>');
+    delen.push('<section><h3>' + esc(t(taal, 'h_adressen')) + '</h3><ul>' + punten + '</ul></section>');
   }
 
-  if (config && config.waze && a.waze_url) delen.push('<div class="knoppen">' + wazeKnop(a.waze_url) + '</div>');
-  delen.push('<div class="voet">' + (a.bijgewerkt_hhmm ? 'Bijgewerkt ' + esc(a.bijgewerkt_hhmm) + ' · ' : '') +
-    'bron: ' + esc(a.bron || 'TomTom') + ' · kaart v' + VERSIE + '</div>');
+  if (config && config.waze && a.waze_url) delen.push('<div class="knoppen">' + wazeKnop(a.waze_url, '', taal) + '</div>');
+  delen.push('<div class="voet">' + (a.bijgewerkt_hhmm ? esc(t(taal, 'bijgewerkt', { t: a.bijgewerkt_hhmm })) + ' · ' : '') +
+    esc(t(taal, 'bron', { bron: a.bron || 'TomTom' })) + ' · ' + esc(t(taal, 'kaart_v', { v: VERSIE })) + '</div>');
   return delen.join('');
 }
 
@@ -586,7 +776,7 @@ class CommuteTimeCard extends HTMLElement {
       const a = staten[id] && staten[id].attributes;
       return id.indexOf('sensor.') === 0 && a && a.bron === 'TomTom' && 'route' in a;
     });
-    return { entities: routes.slice(0, 3), design: 'default' };
+    return { entities: routes.slice(0, 3), design: 'default', language: 'en' };
   }
 
   setConfig(config) {
@@ -600,7 +790,7 @@ class CommuteTimeCard extends HTMLElement {
       this._gebouwd = false;
       if (this._hass) this._ververs(true);
     } catch (err) {
-      this._fail(err, 'kon de instellingen niet verwerken');
+      this._fail(err, 'could not read the configuration');
     }
   }
 
@@ -614,7 +804,7 @@ class CommuteTimeCard extends HTMLElement {
     try {
       this._ververs(false);
     } catch (err) {
-      this._fail(err, 'kon de kaart niet bijwerken');
+      this._fail(err, 'could not update the card');
     }
   }
 
@@ -624,7 +814,7 @@ class CommuteTimeCard extends HTMLElement {
     this._preview = nieuw;
     this._stempel = null;
     if (this._hass && this._config) {
-      try { this._ververs(true); } catch (err) { this._fail(err, 'kon de voorvertoning niet tekenen'); }
+      try { this._ververs(true); } catch (err) { this._fail(err, 'could not render the preview'); }
     }
   }
 
@@ -646,7 +836,7 @@ class CommuteTimeCard extends HTMLElement {
       try {
         if (kaart._hass && kaart._config) kaart._ververs(true);
       } catch (err) {
-        kaart._fail(err, 'kon de tijd niet bijwerken');
+        kaart._fail(err, 'could not update the time');
       }
     }, TIK_MS);
   }
@@ -659,7 +849,7 @@ class CommuteTimeCard extends HTMLElement {
       this._tikker = null;
       if (this._venster && this._venster.open) this._venster.close();
     } catch (err) {
-      console.error('commute-time-card: kon niet netjes opruimen', err);
+      console.error('commute-time-card: could not clean up', err);
     }
   }
 
@@ -671,7 +861,7 @@ class CommuteTimeCard extends HTMLElement {
       (this._config.title ? '<div class="kaartkop">' + esc(this._config.title) + '</div>' : '') +
       '<div class="routes"></div></ha-card>' +
       '<dialog class="' + thema + '"><div class="kop"><span class="titel"></span>' +
-      '<button class="sluit" aria-label="Sluiten">×</button></div><div class="inhoud"></div></dialog>';
+      '<button class="sluit" aria-label="' + esc(t(taalVan(this._config), 'sluiten')) + '">×</button></div><div class="inhoud"></div></dialog>';
     this._lijst = root.querySelector('.routes');
     this._venster = root.querySelector('dialog');
     const kaart = this;
@@ -682,7 +872,7 @@ class CommuteTimeCard extends HTMLElement {
         const rij = e.target.closest ? e.target.closest('[data-route]') : null;
         if (rij && kaart._config.details) kaart._open(rij.getAttribute('data-route'));
       } catch (err) {
-        kaart._fail(err, 'kon het venster niet openen');
+        kaart._fail(err, 'could not open the details');
       }
     });
     this._venster.querySelector('.sluit').addEventListener('click', function () {
@@ -713,7 +903,7 @@ class CommuteTimeCard extends HTMLElement {
     const zien = ids.filter(function (id) { return zichtbaar(staten[id], config); });
     if (!ids.length) {
       this.style.display = 'block';
-      this._lijst.innerHTML = '<div class="melding">Kies in de editor de reistijd-sensor van een route.</div>';
+      this._lijst.innerHTML = '<div class="melding">' + esc(t(taalVan(config), 'kies_route')) + '</div>';
       return;
     }
     if (!zien.length && !this.preview) {
@@ -760,11 +950,11 @@ class CommuteTimeCard extends HTMLElement {
       this.shadowRoot.innerHTML =
         '<div style="padding:14px 16px;border-radius:12px;border-left:4px solid #fb8c00;' +
         'background:rgba(127,127,127,.12);color:var(--primary-text-color,#212121);font-size:13px;line-height:1.45">' +
-        '<b>Commute Time kon niet tekenen</b><br>' +
-        '<span style="opacity:.75">Dit is geen fout in je configuratie; bij de volgende update probeert de kaart het opnieuw.</span><br>' +
+        '<b>' + esc(t(taalVan(this._config), 'faal_kop')) + '</b><br>' +
+        '<span style="opacity:.75">' + esc(t(taalVan(this._config), 'faal_uitleg')) + '</span><br>' +
         '<code style="font-size:11px;word-break:break-word">v' + esc(VERSIE) + ' · ' + esc(waar) + ': ' + esc(melding) + '</code></div>';
     } catch (genest) {
-      console.error('commute-time-card: ook dat melden lukte niet', genest);
+      console.error('commute-time-card: reporting that failed too', genest);
     }
   }
 }
@@ -776,11 +966,11 @@ if (!customElements.get('commute-time-card')) customElements.define('commute-tim
 
 /* ── visuele editor ──────────────────────────────────────────────── */
 
+/* De velden van de editor. Labels en uitleg staan in TEKST, als l_<naam> en
+ * u_<naam>, zodat de editor dezelfde taal spreekt als de kaart. */
 const VELDEN = [
   {
     name: 'entities',
-    label: 'Routes',
-    uitleg: 'De reistijd-sensoren van je routes, in de volgorde waarin ze op de kaart staan.',
     selector: {
       entity: {
         multiple: true,
@@ -788,43 +978,24 @@ const VELDEN = [
       },
     },
   },
-  {
-    name: 'title',
-    label: 'Kop',
-    uitleg: 'Leeg is geen kop.',
-    selector: { text: {} },
-  },
-  {
-    name: 'design',
-    label: 'Vormgeving',
-    uitleg: 'Eigen opmaak, het thema van Home Assistant, of in de stijl van Bubble Card.',
-    selector: { select: { mode: 'dropdown', options: VORMGEVING } },
-  },
-  {
-    name: 'show',
-    label: 'Tonen',
-    uitleg: 'Alleen binnen het venster uit het rooster van de route, of altijd.',
-    selector: { select: { mode: 'dropdown', options: TONEN } },
-  },
-  {
-    name: 'target',
-    label: 'Aankomsttijd en marge tonen',
-    uitleg: 'De aankomsttijd en marge die je zelf hebt ingevoerd. Uit: alleen de vertrektijd, of de rijtijd als je geen aankomsttijd hebt ingesteld.',
-    selector: { boolean: {} },
-  },
-  {
-    name: 'details',
-    label: 'Detailvenster bij aantikken',
-    uitleg: 'Files, andere routes, etappes en de adressen zoals TomTom ze vond.',
-    selector: { boolean: {} },
-  },
-  {
-    name: 'waze',
-    label: 'Knop "Rijden met Waze"',
-    uitleg: 'Opent Waze met de bestemming; Waze rekent zelf de route vanaf waar je bent.',
-    selector: { boolean: {} },
-  },
+  { name: 'title', selector: { text: {} } },
+  { name: 'design', keuzes: vormgeving },
+  { name: 'show', keuzes: tonen },
+  { name: 'target', selector: { boolean: {} } },
+  { name: 'details', selector: { boolean: {} } },
+  { name: 'waze', selector: { boolean: {} } },
+  { name: 'language', keuzes: function () { return TAAL; } },
 ];
+
+/** Het schema voor ha-form, in de gekozen taal. */
+function schema(taal) {
+  return VELDEN.map(function (v) {
+    return {
+      name: v.name,
+      selector: v.keuzes ? { select: { mode: 'dropdown', options: v.keuzes(taal) } } : v.selector,
+    };
+  });
+}
 
 const EDITOR_STIJL = `
   .eigen { display: flex; flex-direction: column; padding: 8px 0; }
@@ -849,8 +1020,11 @@ function keuzes(lijst, gekozen) {
 
 class CommuteTimeCardEditor extends HTMLElement {
   setConfig(config) {
+    const vorige = this._config ? this._config.language : null;
     this._config = normaliseer(config);
     if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+    // in de code-editor een andere taal gekozen: de labels opnieuw
+    if (this._form && vorige !== this._config.language) this._form = null;
     // ha-form houdt zijn eigen data bij en stuurt die bij een wijziging
     // terug. Verandert de configuratie buiten het formulier om (de
     // code-editor), dan moet het formulier dat weten, anders slaat de
@@ -867,6 +1041,7 @@ class CommuteTimeCardEditor extends HTMLElement {
 
   _wijzig(waarden) {
     const config = normaliseer(waarden);
+    const andereTaal = this._config && this._config.language !== config.language;
     this._config = config;
     const uit = {
       type: 'custom:commute-time-card',
@@ -876,32 +1051,33 @@ class CommuteTimeCardEditor extends HTMLElement {
       target: config.target,
       details: config.details,
       waze: config.waze,
+      language: config.language,
     };
     // een lege kop voegt niets toe en hoort niet in de YAML
     if (config.title) uit.title = config.title;
     this.dispatchEvent(new CustomEvent('config-changed', {
       detail: { config: uit }, bubbles: true, composed: true,
     }));
+    // een andere taal: de labels opnieuw, in de nieuwe taal
+    if (andereTaal) {
+      this._form = null;
+      this._teken();
+    }
   }
 
   _teken() {
     if (!this.shadowRoot || !this._config) return;
     const editor = this;
-    const versie = '<div class="versie">Commute Time-kaart v' + esc(VERSIE) + '</div>';
+    const taal = taalVan(this._config);
+    const versie = '<div class="versie">' + esc(t(taal, 'editor_versie', { v: VERSIE })) + '</div>';
 
     if (customElements.get('ha-form')) {
       const form = document.createElement('ha-form');
       form.hass = this._hass;
       form.data = this._config;
-      form.schema = VELDEN.map(function (v) { return { name: v.name, selector: v.selector }; });
-      form.computeLabel = function (v) {
-        const veld = VELDEN.filter(function (x) { return x.name === v.name; })[0];
-        return veld ? veld.label : v.name;
-      };
-      form.computeHelper = function (v) {
-        const veld = VELDEN.filter(function (x) { return x.name === v.name; })[0];
-        return veld ? veld.uitleg : '';
-      };
+      form.schema = schema(taal);
+      form.computeLabel = function (v) { return t(taal, 'l_' + v.name); };
+      form.computeHelper = function (v) { return t(taal, 'u_' + v.name); };
       form.addEventListener('value-changed', function (e) {
         e.stopPropagation();
         editor._wijzig(e.detail.value);
@@ -917,19 +1093,25 @@ class CommuteTimeCardEditor extends HTMLElement {
 
     // terugval zonder ha-form: hetzelfde, met gewone velden
     const c = this._config;
+    const veld = function (naam, inhoud) {
+      return '<label>' + esc(t(taal, 'l_' + naam)) + inhoud + '</label>';
+    };
+    const schakel = function (naam, aan) {
+      return '<label class="schakel"><input type="checkbox" name="' + naam + '"' + (aan ? ' checked' : '') + '>' +
+        esc(t(taal, 'l_' + naam)) + '</label>';
+    };
     this.shadowRoot.innerHTML = '<style>' + EDITOR_STIJL + '</style><div class="eigen">' +
-      '<label>Routes<span class="uitleg">Reistijd-sensoren, één per regel.</span>' +
-      '<textarea name="entities" rows="3">' + esc(c.entities.join('\n')) + '</textarea></label>' +
-      '<label>Kop<span class="uitleg">Leeg is geen kop.</span>' +
-      '<input type="text" name="title" value="' + esc(c.title) + '"></label>' +
-      '<label>Vormgeving<select name="design">' + keuzes(VORMGEVING, c.design) + '</select></label>' +
-      '<label>Tonen<select name="show">' + keuzes(TONEN, c.show) + '</select></label>' +
-      '<label class="schakel"><input type="checkbox" name="target"' + (c.target ? ' checked' : '') +
-      '>Aankomsttijd en marge tonen</label>' +
-      '<label class="schakel"><input type="checkbox" name="details"' + (c.details ? ' checked' : '') +
-      '>Detailvenster bij aantikken</label>' +
-      '<label class="schakel"><input type="checkbox" name="waze"' + (c.waze ? ' checked' : '') +
-      '>Knop "Rijden met Waze"</label>' + versie + '</div>';
+      veld('entities', '<span class="uitleg">' + esc(t(taal, 'u_entities_kaal')) + '</span>' +
+        '<textarea name="entities" rows="3">' + esc(c.entities.join('\n')) + '</textarea>') +
+      veld('title', '<span class="uitleg">' + esc(t(taal, 'u_title')) + '</span>' +
+        '<input type="text" name="title" value="' + esc(c.title) + '">') +
+      veld('design', '<select name="design">' + keuzes(vormgeving(taal), c.design) + '</select>') +
+      veld('show', '<select name="show">' + keuzes(tonen(taal), c.show) + '</select>') +
+      schakel('target', c.target) +
+      schakel('details', c.details) +
+      schakel('waze', c.waze) +
+      veld('language', '<select name="language">' + keuzes(TAAL, c.language) + '</select>') +
+      versie + '</div>';
     const doos = this.shadowRoot.querySelector('.eigen');
     doos.addEventListener('change', function () {
       const lees = function (n) { return doos.querySelector('[name="' + n + '"]'); };
@@ -941,6 +1123,7 @@ class CommuteTimeCardEditor extends HTMLElement {
         target: lees('target').checked,
         details: lees('details').checked,
         waze: lees('waze').checked,
+        language: lees('language').value,
       });
     });
   }
@@ -955,7 +1138,7 @@ if (!window.customCards.some(function (k) { return k.type === 'commute-time-card
   window.customCards.push({
     type: 'commute-time-card',
     name: 'Commute Time',
-    description: 'Reistijd en vertrektijd van je routes, met de files erop.',
+    description: 'Travel time and departure time for your routes, with the traffic on them.',
     preview: false,
     documentationURL: 'https://github.com/vossov/commute-time',
   });
@@ -967,6 +1150,8 @@ export {
   VERSIE,
   VORMGEVING,
   VELDEN,
+  TEKST,
+  t,
   normaliseer,
   drukte,
   wegen,

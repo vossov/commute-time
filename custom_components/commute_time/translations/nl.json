@@ -59,7 +59,7 @@
           "start": "Een adres, een coördinaat, of een entiteit zoals zone.home of person.naam.",
           "via": "Hoogstens drie, één per regel.",
           "destination": "Een adres zo volledig mogelijk, met plaatsnaam.",
-          "margin_minutes": "Zoveel minuten eerder dan de aankomsttijd wil je er zijn: parkeren, naar binnen lopen. Staat altijd op de kaart.",
+          "margin_minutes": "Zoveel minuten eerder dan de aankomsttijd wil je er zijn: parkeren, naar binnen lopen. Staat alleen op de kaart met de kaartoptie target.",
           "stop_minutes": "Hoe lang je bij elke tussenstop stilstaat. TomTom rekent dat niet mee; het vertrek schuift er zoveel door naar voren.",
           "travel_mode": "Waar TomTom de route voor berekent.",
           "avoid": "Een voorkeur, geen verbod: TomTom gebruikt ze als er geen andere weg is.",

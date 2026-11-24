@@ -120,7 +120,9 @@ def test_elk_editorveld_bestaat_overal(kaart_bron):
     # het formulier staat als HTML in een string, vóór de handler die het leest
     begin = kaart_bron.index("// terugval zonder ha-form")
     eind = kaart_bron.index("doos.addEventListener('change'", begin)
-    terugval = set(re.findall(r'name="(\w+)"', kaart_bron[begin:eind]))
+    stuk = kaart_bron[begin:eind]
+    # gewone velden staan er als name="…", de schakelaars als schakel('…', …)
+    terugval = set(re.findall(r'name="(\w+)"', stuk)) | set(re.findall(r"schakel\('(\w+)'", stuk))
     gelezen = set(re.findall(r"lees\('(\w+)'\)", _blok(kaart_bron, "doos.addEventListener('change'")))
     assert velden == terugval, f"VELDEN en het terugvalformulier verschillen: {velden ^ terugval}"
     assert velden == gelezen, f"het terugvalformulier leest niet elk veld: {velden ^ gelezen}"
@@ -128,7 +130,7 @@ def test_elk_editorveld_bestaat_overal(kaart_bron):
     rijen: list[str] = []
     kop_gezien = False
     for regel in README.read_text(encoding="utf-8").splitlines():
-        if regel.startswith("### Opties van de kaart"):
+        if regel.startswith("### Card options"):
             kop_gezien = True
             continue
         if not kop_gezien:
@@ -143,7 +145,7 @@ def test_elk_editorveld_bestaat_overal(kaart_bron):
 
 def test_de_vormgevingen(kaart_bron):
     """Standaard, het HA-thema en Bubble — en voor elk een stuk CSS."""
-    opties = set(re.findall(r"value: '(\w+)'", _blok(kaart_bron, "const VORMGEVING = [", "[]")))
+    opties = set(re.findall(r"'(\w+)'", _blok(kaart_bron, "const VORMGEVING_SLEUTELS = [", "[]")))
     assert opties == {"default", "ha", "bubble"}
     for o in opties - {"default"}:
         assert f"thema-{o}" in kaart_bron

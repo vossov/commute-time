@@ -31,6 +31,7 @@
     "files": [
       {
         "soort": "file",
+        "categorie": "JAM",
         "weg": null,
         "vertraging_min": 3,
         "snelheid_kmh": 40,
@@ -52,7 +53,9 @@
       }
     ],
     "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-commute-time",
-    "fout": null
+    "fout": null,
+    "fout_code": null,
+    "fout_param": {}
   },
   "zonder_doel": {
     "route": "Naar de sportschool",
@@ -86,6 +89,7 @@
     "files": [
       {
         "soort": "file",
+        "categorie": "JAM",
         "weg": null,
         "vertraging_min": 3,
         "snelheid_kmh": 40,
@@ -107,7 +111,9 @@
       }
     ],
     "waze_url": "https://waze.com/ul?ll=52.089400%2C5.110200&navigate=yes&utm_source=home-assistant-commute-time",
-    "fout": null
+    "fout": null,
+    "fout_code": null,
+    "fout_param": {}
   },
   "buiten_venster": {
     "route": "Naar werk",
@@ -117,7 +123,10 @@
     "in_venster": false,
     "status": "buiten_venster",
     "volgend_venster": "2026-11-18T06:30:00+01:00",
-    "volgend_venster_tekst": "morgen 06:30"
+    "volgend_venster_tekst": "morgen 06:30",
+    "volgend_venster_hhmm": "06:30",
+    "volgend_venster_dagen": 1,
+    "volgend_venster_weekdag": 2
   },
   "fout": {
     "route": "Naar werk",
@@ -128,6 +137,10 @@
     "status": "fout",
     "venster_van": "06:30",
     "venster_tot": "09:30",
-    "fout": "TomTom weigert de sleutel voor de Routing API (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op"
+    "fout": "TomTom weigert de sleutel voor de Routing API (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op",
+    "fout_code": "geweigerd",
+    "fout_param": {
+      "dienst": "routing"
+    }
   }
 }

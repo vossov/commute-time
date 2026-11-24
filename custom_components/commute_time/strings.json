@@ -2,141 +2,141 @@
   "config": {
     "step": {
       "user": {
-        "title": "Route toevoegen",
-        "description": "Eén route per keer toevoegen; voor een tweede route voeg je de integratie nog eens toe. Begin en bestemming mogen een adres zijn, een coördinaat (52.09, 5.12) of een entiteit zoals zone.home of person.naam. Een TomTom-sleutel vraag je gratis aan op developer.tomtom.com.",
+        "title": "Add a route",
+        "description": "One route at a time; add the integration again for a second route. Start and destination can be an address, a coordinate (52.09, 5.12) or an entity such as zone.home or person.name. Get a free TomTom key at developer.tomtom.com.",
         "data": {
-          "name": "Naam van de route",
-          "api_key": "TomTom-sleutel",
-          "start": "Vertrek vanaf",
-          "via": "Tussenstops",
-          "destination": "Bestemming"
+          "name": "Route name",
+          "api_key": "TomTom key",
+          "start": "Leave from",
+          "via": "Stops on the way",
+          "destination": "Destination"
         },
         "data_description": {
-          "name": "Wordt de naam van het apparaat en het begin van de entiteits-ID's, zoals sensor.naar_werk_reistijd.",
-          "api_key": "Maak er een aparte sleutel voor, zonder domeinwhitelist. Welke producten aan moeten staan, staat in de README. Eén sleutel volstaat voor al je routes; bij een tweede route staat hij al ingevuld.",
-          "start": "zone.home is het adres dat in Home Assistant is ingesteld. Met person.naam vertrek je vanaf waar die persoon nu is.",
-          "via": "Hoogstens drie, één per regel. Bij een route met een stop rekent de vertrektijd terug vanaf de aankomst op de eindbestemming.",
-          "destination": "Een adres zo volledig mogelijk, met plaatsnaam."
+          "name": "Becomes the device name and the start of the entity IDs, such as sensor.to_work_travel_time.",
+          "api_key": "Create a separate key for this, without a domain whitelist. Which products must be enabled is in the README. One key covers all your routes; it is filled in for a second route.",
+          "start": "zone.home is the address set in Home Assistant. With person.name you leave from wherever that person is now.",
+          "via": "At most three, one per line. With a stop, the departure time is worked back from arriving at the final destination.",
+          "destination": "As complete an address as possible, including the town."
         }
       },
       "bevestig": {
-        "title": "Kloppen deze adressen?",
-        "description": "TomTom vond:\n\n{punten}\n\nReistijd nu: {reistijd} min.\n\nKlopt een adres niet, breek dan af en begin opnieuw met een preciezer adres (straat, huisnummer en plaats). Wanneer de route in beeld is en hoe laat je ergens wilt zijn, stel je daarna in onder Configureren."
+        "title": "Are these addresses right?",
+        "description": "TomTom found:\n\n{punten}\n\nTravel time now: {reistijd} min.\n\nIf an address is wrong, cancel and start again with a more precise one (street, number and town). When the route is shown and when you want to arrive is set afterwards under Configure."
       }
     },
     "error": {
-      "sleutel_leeg": "Vul een TomTom-sleutel in.",
-      "naam_leeg": "Geef de route een naam.",
-      "te_veel_stops": "Hoogstens drie tussenstops.",
-      "adres_niet_gevonden": "TomTom vindt dit adres niet. Voeg de plaatsnaam toe, of gebruik een coördinaat.",
-      "geen_locatie": "Deze entiteit heeft nu geen locatie.",
-      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, voor dit product niet aangezet, of het dagkwotum is op.",
-      "sleutel_geweigerd_search": "TomTom weigert de sleutel voor de Search API (adressen opzoeken): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
-      "sleutel_geweigerd_routing": "TomTom weigert de sleutel voor de Routing API (routes berekenen): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
-      "geen_route": "TomTom vindt geen route over de weg tussen deze punten.",
-      "tomtom_fout": "TomTom gaf geen bruikbaar antwoord. Probeer het over een paar minuten opnieuw."
+      "sleutel_leeg": "Enter a TomTom key.",
+      "naam_leeg": "Give the route a name.",
+      "te_veel_stops": "At most three stops.",
+      "adres_niet_gevonden": "TomTom cannot find this address. Add the town, or use a coordinate.",
+      "geen_locatie": "This entity has no location right now.",
+      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for this product, or the daily quota is used up.",
+      "sleutel_geweigerd_search": "TomTom refuses the key for the Search API (looking up addresses): invalid, that product is not enabled on this key, or the daily quota is used up.",
+      "sleutel_geweigerd_routing": "TomTom refuses the key for the Routing API (calculating routes): invalid, that product is not enabled on this key, or the daily quota is used up.",
+      "geen_route": "TomTom finds no road route between these points.",
+      "tomtom_fout": "TomTom gave no usable answer. Try again in a few minutes."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Route",
-        "description": "Verandert er iets aan de sleutel of de adressen, dan worden die opnieuw bij TomTom opgezocht. Op de volgende pagina staat het rooster per weekdag.",
+        "description": "If the key or an address changes, they are looked up at TomTom again. The schedule per weekday is on the next page.",
         "data": {
-          "api_key": "TomTom-sleutel",
-          "start": "Vertrek vanaf",
-          "via": "Tussenstops",
-          "destination": "Bestemming",
-          "margin_minutes": "Marge",
-          "stop_minutes": "Stoptijd per tussenstop",
-          "travel_mode": "Vervoer",
-          "avoid": "Vermijden",
-          "alternatives": "Andere routes tonen",
-          "scan_minutes": "Verversen elke"
+          "api_key": "TomTom key",
+          "start": "Leave from",
+          "via": "Stops on the way",
+          "destination": "Destination",
+          "margin_minutes": "Margin",
+          "stop_minutes": "Time per stop",
+          "travel_mode": "Vehicle",
+          "avoid": "Avoid",
+          "alternatives": "Other routes to show",
+          "scan_minutes": "Refresh every"
         },
         "data_description": {
-          "api_key": "Gratis aan te vragen op developer.tomtom.com, zonder domeinwhitelist. Welke producten aan moeten staan, staat in de README.",
-          "start": "Een adres, een coördinaat, of een entiteit zoals zone.home of person.naam.",
-          "via": "Hoogstens drie, één per regel.",
-          "destination": "Een adres zo volledig mogelijk, met plaatsnaam.",
-          "margin_minutes": "Zoveel minuten eerder dan de aankomsttijd wil je er zijn: parkeren, naar binnen lopen. Staat altijd op de kaart.",
-          "stop_minutes": "Hoe lang je bij elke tussenstop stilstaat. TomTom rekent dat niet mee; het vertrek schuift er zoveel door naar voren.",
-          "travel_mode": "Waar TomTom de route voor berekent.",
-          "avoid": "Een voorkeur, geen verbod: TomTom gebruikt ze als er geen andere weg is.",
-          "alternatives": "Hoeveel andere routes er in het detailvenster staan, met hoeveel langer ze duren.",
-          "scan_minutes": "Alleen binnen het venster; daarbuiten wordt niets opgevraagd. Twee verzoeken per keer als er een aankomsttijd is."
+          "api_key": "Free at developer.tomtom.com, without a domain whitelist. Which products must be enabled is in the README.",
+          "start": "An address, a coordinate, or an entity such as zone.home or person.name.",
+          "via": "At most three, one per line.",
+          "destination": "As complete an address as possible, including the town.",
+          "margin_minutes": "How many minutes before the arrival time you want to be there: parking, walking in. Shown on the card only with the card option target.",
+          "stop_minutes": "How long you stand still at each stop. TomTom does not count it; the departure moves that much earlier.",
+          "travel_mode": "What TomTom calculates the route for.",
+          "avoid": "A preference, not a ban: TomTom uses them if there is no other way.",
+          "alternatives": "How many other routes the detail view lists, with how much longer they take.",
+          "scan_minutes": "Only inside the window; nothing is requested outside it. Two requests each time when there is an arrival time."
         }
       },
       "rooster": {
-        "title": "Rooster per weekdag",
-        "description": "Per dag: vanaf en tot wanneer de route in beeld is (en bij TomTom wordt opgevraagd), en hoe laat je er wilt zijn. Een dag zonder tijden is een dag zonder route. Zonder aankomsttijd toont de kaart de reistijd en wanneer je aankomt als je nu vertrekt.",
+        "title": "Schedule per weekday",
+        "description": "For each day: from and until when the route is shown (and requested from TomTom), and what time you want to arrive. A day without times is a day without the route. Without an arrival time the card shows the travel time and when you would arrive if you left now.",
         "sections": {
           "monday": {
-            "name": "Maandag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Monday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           },
           "tuesday": {
-            "name": "Dinsdag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Tuesday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           },
           "wednesday": {
-            "name": "Woensdag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Wednesday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           },
           "thursday": {
-            "name": "Donderdag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Thursday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           },
           "friday": {
-            "name": "Vrijdag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Friday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           },
           "saturday": {
-            "name": "Zaterdag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Saturday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           },
           "sunday": {
-            "name": "Zondag",
-            "data": { "show_from": "Tonen vanaf", "show_until": "Tonen tot", "arrive_at": "Aankomen om" }
+            "name": "Sunday",
+            "data": { "show_from": "Show from", "show_until": "Show until", "arrive_at": "Arrive at" }
           }
         }
       }
     },
     "error": {
-      "sleutel_leeg": "Vul een TomTom-sleutel in.",
-      "te_veel_stops": "Hoogstens drie tussenstops.",
-      "adres_niet_gevonden": "TomTom vindt dit adres niet. Voeg de plaatsnaam toe, of gebruik een coördinaat.",
-      "geen_locatie": "Deze entiteit heeft nu geen locatie.",
-      "sleutel_geweigerd": "TomTom weigert de sleutel: ongeldig, voor dit product niet aangezet, of het dagkwotum is op.",
-      "sleutel_geweigerd_search": "TomTom weigert de sleutel voor de Search API (adressen opzoeken): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
-      "sleutel_geweigerd_routing": "TomTom weigert de sleutel voor de Routing API (routes berekenen): ongeldig, dat product staat niet aan bij deze sleutel, of het dagkwotum is op.",
-      "geen_route": "TomTom vindt geen route over de weg tussen deze punten.",
-      "tomtom_fout": "TomTom gaf geen bruikbaar antwoord. Probeer het over een paar minuten opnieuw.",
-      "venster_half": "{dag}: vul zowel 'tonen vanaf' als 'tonen tot' in, of geen van beide.",
-      "venster_omgekeerd": "{dag}: 'tonen tot' ligt vóór 'tonen vanaf'. Een venster over middernacht kan niet; maak er twee dagen van.",
-      "aankomst_zonder_venster": "{dag}: een aankomsttijd zonder venster wordt nooit opgevraagd. Vul ook in vanaf en tot wanneer de route in beeld is."
+      "sleutel_leeg": "Enter a TomTom key.",
+      "te_veel_stops": "At most three stops.",
+      "adres_niet_gevonden": "TomTom cannot find this address. Add the town, or use a coordinate.",
+      "geen_locatie": "This entity has no location right now.",
+      "sleutel_geweigerd": "TomTom refuses the key: invalid, not enabled for this product, or the daily quota is used up.",
+      "sleutel_geweigerd_search": "TomTom refuses the key for the Search API (looking up addresses): invalid, that product is not enabled on this key, or the daily quota is used up.",
+      "sleutel_geweigerd_routing": "TomTom refuses the key for the Routing API (calculating routes): invalid, that product is not enabled on this key, or the daily quota is used up.",
+      "geen_route": "TomTom finds no road route between these points.",
+      "tomtom_fout": "TomTom gave no usable answer. Try again in a few minutes.",
+      "venster_half": "{dag}: fill in both 'show from' and 'show until', or neither.",
+      "venster_omgekeerd": "{dag}: 'show until' is before 'show from'. A window across midnight is not possible; make it two days.",
+      "aankomst_zonder_venster": "{dag}: an arrival time without a window is never requested. Also fill in from and until when the route is shown."
     }
   },
   "selector": {
     "travel_mode": {
       "options": {
-        "car": "Auto",
-        "motorcycle": "Motor"
+        "car": "Car",
+        "motorcycle": "Motorcycle"
       }
     },
     "avoid": {
       "options": {
-        "toll_roads": "Tolwegen",
-        "motorways": "Snelwegen",
-        "ferries": "Veerboten",
-        "unpaved_roads": "Onverharde wegen"
+        "toll_roads": "Toll roads",
+        "motorways": "Motorways",
+        "ferries": "Ferries",
+        "unpaved_roads": "Unpaved roads"
       }
     }
   },
   "entity": {
     "sensor": {
-      "reistijd": { "name": "Reistijd" },
-      "vertrektijd": { "name": "Vertrektijd" }
+      "reistijd": { "name": "Travel time" },
+      "vertrektijd": { "name": "Departure time" }
     }
   }
 }

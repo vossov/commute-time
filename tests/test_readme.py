@@ -85,7 +85,7 @@ def test_geen_relatieve_links_naar_bestanden(document):
 
 def test_de_inhoudsopgave_wijst_naar_koppen_die_bestaan(readme):
     ankers = _ankers(WORTEL / "README.md")
-    opgave = re.search(r"## Inhoud\n(.+?)\n## ", readme, flags=re.S).group(1)
+    opgave = re.search(r"## Contents\n(.+?)\n## ", readme, flags=re.S).group(1)
     gevonden = re.findall(r"\]\(#([^)]+)\)", opgave)
     assert gevonden, "geen inhoudsopgave gevonden"
     ontbreekt = [a for a in gevonden if a not in ankers]
@@ -94,10 +94,10 @@ def test_de_inhoudsopgave_wijst_naar_koppen_die_bestaan(readme):
 
 def test_elke_kop_van_niveau_twee_staat_in_de_inhoudsopgave(readme):
     """Een nieuwe sectie zonder regel in de inhoudsopgave valt niet op."""
-    opgave = re.search(r"## Inhoud\n(.+?)\n## ", readme, flags=re.S).group(1)
+    opgave = re.search(r"## Contents\n(.+?)\n## ", readme, flags=re.S).group(1)
     in_opgave = set(re.findall(r"\]\(#([^)]+)\)", opgave))
     koppen = re.findall(r"^## (.+)$", readme, flags=re.M)
-    ontbreekt = [k for k in koppen if k != "Inhoud" and _slug(k) not in in_opgave]
+    ontbreekt = [k for k in koppen if k != "Contents" and _slug(k) not in in_opgave]
     assert not ontbreekt, f"niet in de inhoudsopgave: {ontbreekt}"
 
 
@@ -108,4 +108,4 @@ def test_de_afbeeldingen_hebben_een_beschrijving_en_een_voorbeeldmelding(readme)
         assert re.search(r'alt="[^"]{5,}"', img), f"afbeelding zonder beschrijving: {img}"
     # de afbeeldingen van de kaart zijn getekend met voorbeeldgegevens, buiten
     # Home Assistant; dat moet erbij staan, anders lijkt het een schermafbeelding
-    assert "Voorbeeldgegevens" in readme and "geen schermafbeelding" in readme
+    assert "Sample data" in readme and "not a screenshot" in readme

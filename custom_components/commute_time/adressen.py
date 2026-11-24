@@ -120,7 +120,7 @@ class Zoeker:
         uitkomst = find_coordinates(self._hass, entiteit)
         plek = lees_coordinaat(uitkomst)
         if plek is None:
-            raise EntiteitZonderLocatie(f"{entiteit} heeft nu geen locatie")
+            raise EntiteitZonderLocatie(f"{entiteit} heeft nu geen locatie", "geen_locatie", entiteit=entiteit)
         staat = self._hass.states.get(entiteit) if self._hass else None
         naam = staat.name if staat is not None and getattr(staat, "name", None) else entiteit
         return Punt(entiteit, plek[0], plek[1], naam, "entiteit")
@@ -137,7 +137,7 @@ class Zoeker:
         )
         gevonden = lees_geocode(data)
         if gevonden is None:
-            raise AdresNietGevonden(f"TomTom vindt geen adres bij “{tekst}”")
+            raise AdresNietGevonden(f"TomTom vindt geen adres bij “{tekst}”", "geen_adres", adres=tekst)
         punt = Punt(tekst, gevonden["lat"], gevonden["lon"], gevonden["adres"] or tekst, "adres")
         if nu is not None:
             tot = bewaren_tot(nu, headers)

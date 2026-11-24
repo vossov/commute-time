@@ -25,8 +25,12 @@ const staten = JSON.parse(readFileSync(new URL('./fixtures/sensor.json', import.
 
 // 07:34 op 17 november 2026, Amsterdam — het moment van de fixture
 const NU = Date.parse('2026-11-17T07:34:00+01:00');
-const STANDAARD = kaart.normaliseer({});
-const MET_DOEL = kaart.normaliseer({ target: true });
+// de meeste tests hieronder lezen de Nederlandse zinnen; Engels (de
+// standaard) heeft een eigen blok onderaan
+const STANDAARD = kaart.normaliseer({ language: 'nl' });
+const MET_DOEL = kaart.normaliseer({ target: true, language: 'nl' });
+const EN = kaart.normaliseer({});
+const EN_DOEL = kaart.normaliseer({ target: true });
 // de scheiding in een regel: een vaste spatie vóór de punt, zodat een regel die
 // omslaat de punt bij het woord ervoor laat en niet met een los "· 3 min file" begint
 const PUNT = ' · ';
@@ -244,12 +248,108 @@ test('drukte volgt de vertraging, niet een verzonnen grens per route', () => {
 });
 
 test('minuten worden leesbaar', () => {
-  assert.equal(kaart.minuten(34), '34 min');
-  assert.equal(kaart.minuten(60), '1 u');
-  assert.equal(kaart.minuten(72), '1 u 12 min');
-  assert.equal(kaart.minuten(null), '');
+  assert.equal(kaart.minuten(34, 'nl'), '34 min');
+  assert.equal(kaart.minuten(60, 'nl'), '1 u');
+  assert.equal(kaart.minuten(72, 'nl'), '1 u 12 min');
+  assert.equal(kaart.minuten(null, 'nl'), '');
+  assert.equal(kaart.minuten(72), '1 h 12 min');
+  assert.equal(kaart.minuten(60, 'en'), '1 h');
 });
 
 test('de versie staat in de kaart', () => {
   assert.match(kaart.VERSIE, /^\d+\.\d+\.\d+$/);
+});
+
+// ── talen ───────────────────────────────────────────────────────────
+
+test('Engels is de standaard, en alleen een bekende taal telt', () => {
+  assert.equal(kaart.normaliseer({}).language, 'en');
+  assert.equal(kaart.normaliseer({ language: 'nl' }).language, 'nl');
+  for (const onzin of ['de', 'NL', '', null, 3, {}]) {
+    assert.equal(kaart.normaliseer({ language: onzin }).language, 'en', String(onzin));
+  }
+});
+
+test('elke tekst bestaat in beide talen, met dezelfde invulplekken', () => {
+  const en = kaart.TEKST.en;
+  const nl = kaart.TEKST.nl;
+  assert.deepEqual(Object.keys(en).sort(), Object.keys(nl).sort());
+  const plekken = (x) => (typeof x === 'string' ? (x.match(/\{\w+\}/g) || []).sort().join() : x.length);
+  for (const k of Object.keys(en)) assert.equal(plekken(en[k]), plekken(nl[k]), k);
+});
+
+test('elk editorveld heeft een label en uitleg in beide talen', () => {
+  for (const taal of ['en', 'nl']) {
+    for (const v of kaart.VELDEN) {
+      assert.ok(('l_' + v.name) in kaart.TEKST[taal], `${taal}: l_${v.name}`);
+      assert.ok(('u_' + v.name) in kaart.TEKST[taal], `${taal}: u_${v.name}`);
+    }
+  }
+});
+
+test('in het Engels: hoofdgetal, regel en vertrek nu', () => {
+  const w = kaart.weergave(staten.berekend, NU, EN);
+  assert.deepEqual(w.hoofd, { label: 'Leave', waarde: '07:52' });
+  assert.equal(w.regel, [V('3 min driving'), 'via Sample Street', 'A10', V('3 min in traffic')].join(PUNT));
+  const voorbij = Date.parse('2026-11-17T07:52:30+01:00');
+  assert.deepEqual(kaart.weergave(staten.berekend, voorbij, EN).hoofd, { label: 'Leave', waarde: 'now' });
+  const laat = Object.assign({}, staten.berekend, { status: 'te_laat', te_laat_min: 11 });
+  assert.equal(kaart.weergave(laat, NU, EN).regel.split(PUNT)[0], V('11 min late'));
+  assert.match(kaart.weergave(staten.berekend, NU, EN_DOEL).regel, /by 08:30, 5 min margin/);
+});
+
+test('in het Engels: buiten het venster en een fout', () => {
+  assert.equal(kaart.weergave(staten.buiten_venster, NU, EN).regel, 'Shown again tomorrow 06:30');
+  const ma = Object.assign({}, staten.buiten_venster, { volgend_venster_dagen: 6, volgend_venster_weekdag: 0 });
+  assert.equal(kaart.weergave(ma, NU, EN).regel, 'Shown again Monday 06:30');
+  assert.equal(kaart.weergave(ma, NU, STANDAARD).regel, 'Weer in beeld maandag 06:30');
+  const fout = kaart.weergave(staten.fout, NU, EN).regel;
+  assert.match(fout, /^TomTom refuses the key for the Routing API \(403\)/);
+});
+
+test('een fout zonder code (een oudere sensor) toont de tekst van de sensor', () => {
+  const oud = Object.assign({}, staten.fout, { fout_code: null, fout_param: {} });
+  assert.equal(kaart.weergave(oud, NU, EN).regel, staten.fout.fout);
+  const onbekend = Object.assign({}, staten.fout, { fout_code: 'nieuw_iets' });
+  assert.equal(kaart.weergave(onbekend, NU, EN).regel, staten.fout.fout);
+});
+
+test('elke foutcode van de integratie heeft een zin, met zijn parameters ingevuld', () => {
+  const bron = readFileSync(new URL('../custom_components/commute_time/tomtom.py', import.meta.url), 'utf8');
+  const blok = bron.slice(bron.indexOf('FOUTCODES = {'), bron.indexOf('}', bron.indexOf('FOUTCODES = {')));
+  const codes = [...blok.matchAll(/^\s+"(\w+)": \(([^)]*)\)/gm)];
+  assert.ok(codes.length >= 10, 'FOUTCODES niet gevonden');
+  for (const [, code, params] of codes) {
+    const param = {};
+    for (const [, naam] of params.matchAll(/"(\w+)"/g)) param[naam] = 'X' + naam;
+    if (code === 'geweigerd') param.dienst = 'search';
+    for (const config of [EN, STANDAARD]) {
+      const a = Object.assign({}, staten.fout, { fout_code: code, fout_param: param });
+      const regel = kaart.weergave(a, NU, config).regel;
+      assert.notEqual(regel, staten.fout.fout, `${code} valt terug op de sensortekst`);
+      for (const naam of Object.keys(param)) {
+        if (naam !== 'dienst') assert.ok(regel.includes('X' + naam), `${code}: ${naam} ontbreekt in "${regel}"`);
+      }
+    }
+  }
+});
+
+test('in het Engels: het venster', () => {
+  const html = kaart.detail(staten.berekend, NU, EN);
+  for (const zin of ['Travel time', 'Usual at this hour', 'Without traffic', 'Traffic and delays', 'traffic jam', 'source: TomTom', 'Drive with Waze']) {
+    assert.ok(html.includes(zin), zin);
+  }
+  assert.ok(!/Reistijd|Gebruikelijk|Files en hinder|bron:/.test(html), 'Nederlands in het Engelse venster');
+});
+
+test('geen Nederlands op de Engelse kaart', () => {
+  const woorden = /\b(rijden|vertrek|file|marge|venster|bestaat|logboek|kies|bron|gebruikelijk|aankomst|Vertrek|Weer)\b/;
+  for (const config of [EN, EN_DOEL]) {
+    for (const [naam, a] of Object.entries(staten)) {
+      if (naam === 'fout') continue; // TomTom's eigen detail mag in elke taal zijn
+      const html = kaart.routeRij('sensor.x', { state: '3', attributes: a }, config, NU) + kaart.detail(a, NU, config);
+      const tekst = html.replace(/<[^>]+>/g, ' ').replace(/Sample Street|Stationsplein[^<]*/g, '');
+      assert.ok(!woorden.test(tekst), `${naam}: ${tekst.match(woorden)}`);
+    }
+  }
 });

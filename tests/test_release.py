@@ -64,7 +64,7 @@ def test_de_titel_en_de_tekst_van_de_release(notes, tekst, versie):
     assert "### " in uit
     assert not uit.lstrip().startswith(">"), "de samenvatting staat al in de titel"
     assert "CHANGELOG.md" in uit
-    assert "Bijwerken" in uit
+    assert "Updating" in uit
 
 
 def test_het_script_geeft_dezelfde_uitkomst_op_de_opdrachtregel(versie):
@@ -96,17 +96,17 @@ GOED = """# Changelog
 
 > Tweede
 
-### Nieuw
+### Added
 - iets nieuws
 
-### Opgelost
+### Fixed
 - iets gerepareerd
 
 ## [0.1.0] — 2026-11-16
 
 > Eerste
 
-### Nieuw
+### Added
 - begin
 """
 
@@ -120,19 +120,19 @@ def test_de_samenvatting_en_de_tekst_worden_gescheiden(notes):
     s = notes.sectie(GOED, "0.2.0")
     assert s.samenvatting == "Tweede"
     assert s.datum == "2026-11-18"
-    assert s.tekst.startswith("### Nieuw")
+    assert s.tekst.startswith("### Added")
     assert "Tweede" not in s.tekst
     assert "0.1.0" not in s.tekst, "een sectie loopt niet door in de volgende"
 
 
 @pytest.mark.parametrize("wijziging, fragment", [
     (lambda t: t.replace("> Tweede\n\n", ""), "samenvatting"),
-    (lambda t: t.replace("### Nieuw\n- iets nieuws\n\n", "### Nieuw\n\n"), "geen enkel streepje"),
-    (lambda t: t.replace("### Opgelost", "### Gerepareerd"), "kent het kopje"),
-    (lambda t: t.replace("### Nieuw\n- iets nieuws\n\n### Opgelost\n- iets gerepareerd",
-                         "### Opgelost\n- iets gerepareerd\n\n### Nieuw\n- iets nieuws"), "andere volgorde"),
-    (lambda t: t.replace("### Opgelost\n- iets gerepareerd", "### Nieuw\n- nog iets"), "twee keer"),
-    (lambda t: t.replace("### Nieuw\n- iets nieuws\n\n### Opgelost\n- iets gerepareerd\n", "Alleen tekst.\n"), "geen kopje"),
+    (lambda t: t.replace("### Added\n- iets nieuws\n\n", "### Added\n\n"), "geen enkel streepje"),
+    (lambda t: t.replace("### Fixed", "### Repaired"), "kent het kopje"),
+    (lambda t: t.replace("### Added\n- iets nieuws\n\n### Fixed\n- iets gerepareerd",
+                         "### Fixed\n- iets gerepareerd\n\n### Added\n- iets nieuws"), "andere volgorde"),
+    (lambda t: t.replace("### Fixed\n- iets gerepareerd", "### Added\n- nog iets"), "twee keer"),
+    (lambda t: t.replace("### Added\n- iets nieuws\n\n### Fixed\n- iets gerepareerd\n", "Alleen tekst.\n"), "geen kopje"),
     (lambda t: t.replace("2026-11-18", "2026-13-45"), "datum"),
     (lambda t: t.replace("2026-11-18", "2026-11-10"), "datums lopen niet mee"),
 ])

@@ -54,8 +54,36 @@ CATEGORIE = {
 }
 
 
+# Elke code die een TomTomFout kan dragen, met de parameters die erbij horen.
+# De kaart heeft voor elke code een zin in elke taal; tests/test_kaart.py faalt
+# als er een ontbreekt.
+FOUTCODES = {
+    "geweigerd": ("dienst", "detail"),
+    "te_vaak": (),
+    "geen_route": ("detail",),
+    "status": ("status",),
+    "onverwacht": (),
+    "time_out": ("seconden",),
+    "onbereikbaar": ("detail",),
+    "geen_adres": ("adres",),
+    "geen_locatie": ("entiteit",),
+    "geen_routes": (),
+}
+
+
 class TomTomFout(Exception):
-    """Iets ging mis bij TomTom. De tekst is bedoeld om te tonen."""
+    """Iets ging mis bij TomTom. De tekst is voor het logboek.
+
+    `code` en `param` zijn voor de kaart: die toont de melding in de taal die
+    de gebruiker koos, en kan dat niet met een kant-en-klare zin. De codes
+    staan in FOUTCODES; de kaart heeft voor elk een zin (tests/test_kaart.py
+    bewaakt dat). Zonder code toont de kaart de tekst zoals hij is.
+    """
+
+    def __init__(self, bericht: str, code: str = "", **param: Any) -> None:
+        super().__init__(bericht)
+        self.code = code
+        self.param = {k: v for k, v in param.items() if v not in (None, "")}
 
 
 class TomTomGeweigerd(TomTomFout):
@@ -68,8 +96,8 @@ class TomTomGeweigerd(TomTomFout):
     alleen raden over welke vinkjes in het portaal aan moesten.
     """
 
-    def __init__(self, bericht: str, dienst: str = "") -> None:
-        super().__init__(bericht)
+    def __init__(self, bericht: str, dienst: str = "", detail: str = "") -> None:
+        super().__init__(bericht, "geweigerd", dienst=dienst, detail=detail)
         self.dienst = dienst
 
 
@@ -231,19 +259,20 @@ def verwerk_antwoord(
             "niet aangezet, of het dagkwotum is op"
             + (f". {detail}" if detail else ""),
             dienst,
+            detail,
         )
     if status == 429:
-        raise TomTomTeVaak("TomTom krijgt te veel verzoeken voor deze sleutel (429)")
+        raise TomTomTeVaak("TomTom krijgt te veel verzoeken voor deze sleutel (429)", "te_vaak")
     if status == 400:
-        raise GeenRoute(detail or "TomTom kan hier geen route tussen leggen (400)")
+        raise GeenRoute(detail or "TomTom kan hier geen route tussen leggen (400)", "geen_route", detail=detail)
     if status != 200:
-        raise TomTomFout(f"TomTom antwoordde met {status}")
+        raise TomTomFout(f"TomTom antwoordde met {status}", "status", status=status)
     try:
         data = json.loads(tekst)
     except ValueError as err:
-        raise TomTomFout("TomTom stuurde geen leesbare JSON") from err
+        raise TomTomFout("TomTom stuurde geen leesbare JSON", "onverwacht") from err
     if not isinstance(data, dict):
-        raise TomTomFout("TomTom stuurde een onverwacht antwoord")
+        raise TomTomFout("TomTom stuurde een onverwacht antwoord", "onverwacht")
     return data
 
 
@@ -377,6 +406,8 @@ def _files(secties: list[dict[str, Any]], stukken: list[dict[str, Any]]) -> list
         ernst = sectie.get("magnitudeOfDelay")
         uit.append({
             "soort": CATEGORIE.get(str(sectie.get("simpleCategory")), "hinder"),
+            # de code zelf, zodat de kaart hem in de gekozen taal kan noemen
+            "categorie": str(sectie.get("simpleCategory")) if sectie.get("simpleCategory") in CATEGORIE else "OTHER",
             "weg": weg,
             "vertraging_s": int(vertraging) if vertraging is not None else None,
             "snelheid_kmh": int(round(snelheid)) if snelheid is not None else None,
@@ -460,7 +491,13 @@ async def vraag(
             status = antwoord.status
             headers = {k: v for k, v in antwoord.headers.items()}
     except asyncio.TimeoutError as err:
-        raise TomTomFout(f"TomTom antwoordde niet binnen {TIMEOUT_S} seconden") from err
+        raise TomTomFout(
+            f"TomTom antwoordde niet binnen {TIMEOUT_S} seconden", "time_out", seconden=TIMEOUT_S
+        ) from err
     except aiohttp.ClientError as err:
-        raise TomTomFout(zonder_sleutel(f"TomTom niet bereikbaar: {err}", sleutel)) from err
+        raise TomTomFout(
+            zonder_sleutel(f"TomTom niet bereikbaar: {err}", sleutel),
+            "onbereikbaar",
+            detail=zonder_sleutel(str(err), sleutel),
+        ) from err
     return verwerk_antwoord(status, tekst, dienst=dienst_van(url), sleutel=sleutel), headers

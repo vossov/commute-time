@@ -36,14 +36,16 @@ function voorbeelden() {
   // de getallen horen bij elkaar: 33 min zonder verkeer + 8 min vertraging = 41 min,
   // en wie nu om 07:34 vertrekt is er om 08:15. Anders staat er in het venster
   // "nu 41 min, gebruikelijk 3 min", en dat is geen voorbeeld maar een tegenspraak.
-  const druk = Object.assign({}, b, { route: 'Naar kantoor', reistijd_min: 41, vertraging_min: 8, vrij_min: 33,
+  const druk = Object.assign({}, b, { route: 'To the office', reistijd_min: 41, vertraging_min: 8, vrij_min: 33,
     normaal_min: 36, reistijd_bij_vertrek_min: 38, afstand_km: 31.4, aankomst_hhmm: '08:15', via: ['A2', 'A10'],
-    files: [{ soort: 'file', weg: 'A10', vertraging_min: 8, snelheid_kmh: 41, ernst: 1 }] });
-  const zonder = Object.assign({}, staten.zonder_doel, { route: 'Naar de sportschool', reistijd_min: 18, vertraging_min: 0, vrij_min: 18, via: ['N237'], files: [] });
-  const nu = Object.assign({}, b, { route: 'Naar de tennisbaan', status: 'vertrek_nu', reistijd_min: 22, vertraging_min: 1, vrij_min: 21, via: ['N237'], files: [] });
-  const laat = Object.assign({}, b, { route: 'Naar school en werk', status: 'te_laat', te_laat_min: 11, reistijd_min: 47,
-    vertraging_min: 16, vrij_min: 31, via: ['A12', 'A27'], files: [{ soort: 'file', weg: 'A12', vertraging_min: 11, snelheid_kmh: 23, ernst: 2 }] });
-  const stil = Object.assign({}, staten.buiten_venster, { route: 'Naar oma' });
+    // een Engelse naam voor thuis; de bestemming blijft het adres uit de fixture
+    punten: b.punten.map((p, i) => (i === 0 ? Object.assign({}, p, { gevonden: 'Home' }) : p)),
+    files: [{ soort: 'file', categorie: 'JAM', weg: 'A10', vertraging_min: 8, snelheid_kmh: 41, ernst: 1 }] });
+  const zonder = Object.assign({}, staten.zonder_doel, { route: 'To the gym', reistijd_min: 18, vertraging_min: 0, vrij_min: 18, via: ['N237'], files: [] });
+  const nu = Object.assign({}, b, { route: 'To the tennis club', status: 'vertrek_nu', reistijd_min: 22, vertraging_min: 1, vrij_min: 21, via: ['N237'], files: [] });
+  const laat = Object.assign({}, b, { route: 'School and work', status: 'te_laat', te_laat_min: 11, reistijd_min: 47,
+    vertraging_min: 16, vrij_min: 31, via: ['A12', 'A27'], files: [{ soort: 'file', categorie: 'JAM', weg: 'A12', vertraging_min: 11, snelheid_kmh: 23, ernst: 2 }] });
+  const stil = Object.assign({}, staten.buiten_venster, { route: 'To grandma' });
   const st = (a, s) => ({ state: s, attributes: a, last_updated: '1' });
   return { states: {
     'sensor.kantoor': st(druk, '41'), 'sensor.sport': st(zonder, '18'), 'sensor.tennis': st(nu, '22'),
@@ -127,16 +129,16 @@ const ROUTES = ['sensor.kantoor', 'sensor.sport', 'sensor.tennis', 'sensor.schoo
   await neem('bubble.png', kaartDoos + `
     const rij = document.createElement('div'); rij.className = 'rij'; rij.id = 'blok';
     const kaart = { entities: args.routes, design: 'bubble', show: 'always' };
-    rij.appendChild(doos('', args.donker, 'Bubble-stijl, donker', { kaart }));
-    rij.appendChild(doos('', args.licht, 'Bubble-stijl, licht', { kaart }));
+    rij.appendChild(doos('', args.donker, 'Bubble style, dark', { kaart }));
+    rij.appendChild(doos('', args.licht, 'Bubble style, light', { kaart }));
     werk.appendChild(rij);`, { hass, routes: ROUTES, donker: DONKER, licht: LICHT });
 
   // 2. de andere twee vormgevingen
   await neem('vormgevingen.png', kaartDoos + `
     const rij = document.createElement('div'); rij.className = 'rij'; rij.id = 'blok';
     const alle = args.routes.slice(0, 4);
-    rij.appendChild(doos('', args.donker, 'Standaard (design: default)', { kaart: { entities: alle, design: 'default', show: 'always' } }));
-    rij.appendChild(doos('', args.donker, 'Home Assistant-thema (design: ha)', { kaart: { entities: alle, design: 'ha', show: 'always', title: 'Onderweg' } }));
+    rij.appendChild(doos('', args.donker, 'Default (design: default)', { kaart: { entities: alle, design: 'default', show: 'always' } }));
+    rij.appendChild(doos('', args.donker, 'Home Assistant theme (design: ha)', { kaart: { entities: alle, design: 'ha', show: 'always', title: 'On the road' } }));
     werk.appendChild(rij);`, { hass, routes: ROUTES, donker: DONKER });
 
   // 3. het detailvenster
@@ -166,7 +168,7 @@ const ROUTES = ['sensor.kantoor', 'sensor.sport', 'sensor.tennis', 'sensor.schoo
       '<div style="width:100px;height:100px;border-radius:50%;background:rgba(67,160,71,.22);color:#6fd072;display:flex;align-items:center;justify-content:center;margin-right:24px;flex:none">' +
       '<svg viewBox="0 0 24 24" width="58" height="58" fill="currentColor"><path d="' + MDI['car-clock'] + '"/></svg></div>' +
       '<div><div style="font-size:56px;font-weight:700;letter-spacing:-1px;line-height:1.05;white-space:nowrap">Commute Time</div>' +
-      '<div style="font-size:22px;opacity:.78;margin-top:10px;white-space:nowrap">Rijtijd en vertrektijd voor je vaste routes</div></div></div>' +
+      '<div style="font-size:22px;opacity:.78;margin-top:10px;white-space:nowrap">Driving time and departure time for your regular routes</div></div></div>' +
       '<div id="kaartplek" style="width:400px;flex:none"></div>';
     werk.appendChild(b);
     // in de banner korte regels, zodat geen pil over drie regels loopt

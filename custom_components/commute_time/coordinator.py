@@ -156,12 +156,12 @@ class RouteCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except (TomTomGeweigerd, TomTomTeVaak) as err:
             self._terugschakelen()
             self._meld(str(err))
-            return uitvoer.fout(self.entry.title, nu, plan, str(err))
+            return uitvoer.fout(self.entry.title, nu, plan, str(err), err.code, err.param)
         except TomTomFout as err:
             self._terugschakeling_s = None
             self.update_interval = self._interval
             self._meld(str(err))
-            return uitvoer.fout(self.entry.title, nu, plan, str(err))
+            return uitvoer.fout(self.entry.title, nu, plan, str(err), err.code, err.param)
 
         if self._terugschakeling_s is not None:
             _LOGGER.info("%s: TomTom antwoordt weer; terug naar het gewone ritme", self.entry.title)
@@ -178,7 +178,7 @@ class RouteCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         routes = await self._routes_nu(coords)
         if not routes:
-            raise TomTomFout("TomTom gaf geen route terug")
+            raise TomTomFout("TomTom gaf geen route terug", "geen_routes")
 
         route_bij_vertrek = None
         if plan.aankomst is not None:

@@ -55,6 +55,11 @@ def staten() -> dict:
         nu=NU, doel=plan.aankomst, reistijd_nu_s=routes[0]["reistijd_s"],
         stoptijd_s=0, vertrek_tomtom=bij_vertrek["vertrek"],
     )
+    # een echte weigering, zoals verwerk_antwoord hem maakt, met code en parameters
+    try:
+        tomtom.verwerk_antwoord(403, "", dienst="routing")
+    except tomtom.TomTomGeweigerd as err:
+        geweigerd = err
     waze = [waze_link(p["lat"], p["lon"]) for p in PUNTEN[1:]]
     return {
         "berekend": uitvoer.berekend(
@@ -78,10 +83,7 @@ def staten() -> dict:
             "Naar werk", datetime(2026, 11, 17, 18, 0, tzinfo=TZ),
             rooster.volgende_begin(ROOSTER, datetime(2026, 11, 17, 18, 0, tzinfo=TZ)),
         ),
-        "fout": uitvoer.fout(
-            "Naar werk", NU, plan,
-            "TomTom weigert de sleutel voor de Routing API (403): ongeldig, voor dit product niet aangezet, of het dagkwotum is op",
-        ),
+        "fout": uitvoer.fout("Naar werk", NU, plan, str(geweigerd), geweigerd.code, geweigerd.param),
     }
 
 

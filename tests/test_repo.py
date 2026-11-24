@@ -63,13 +63,13 @@ def test_de_eerste_ronde_houdt_het_opzetten_niet_tegen():
 
 
 def test_de_sleuteluitleg_noemt_precies_de_tomtom_diensten_die_de_code_gebruikt():
-    """Minimale rechten: docs/tomtom-sleutel.md zegt welke diensten de sleutel
+    """Minimale rechten: docs/tomtom-key.md zegt welke diensten de sleutel
     nodig heeft. Gebruikt de code er een bij, dan moet die tabel mee — anders
     zet iemand netjes alleen de genoemde producten aan en krijgt hij een
     403 op het nieuwe."""
     bron = (COMPONENT / "tomtom.py").read_text(encoding="utf-8")
     in_code = set(re.findall(r'"https://(api\.tomtom\.com/[a-z]+/\d+/[a-zA-Z]+)', bron))
-    uitleg = (WORTEL / "docs" / "tomtom-sleutel.md").read_text(encoding="utf-8")
+    uitleg = (WORTEL / "docs" / "tomtom-key.md").read_text(encoding="utf-8")
     in_uitleg = set(re.findall(r"`(api\.tomtom\.com/[a-z]+/\d+/[a-zA-Z]+)`", uitleg))
     assert in_code, "geen TomTom-adressen gevonden in tomtom.py; is de schrijfwijze veranderd?"
     assert in_code == in_uitleg, f"de uitleg en de code verschillen: {in_code ^ in_uitleg}"
@@ -107,9 +107,10 @@ def test_vertalingen_dekken_dezelfde_sleutels():
         assert _sleutelboom(_laad(pad)) == verwacht, f"{pad.name} wijkt af van strings.json"
 
 
-def test_nl_is_strings():
-    """strings.json is Nederlands, zoals bij Stars; nl.json is er een kopie van."""
-    assert _laad(VERTALINGEN / "nl.json") == _laad(STRINGS)
+def test_en_is_strings():
+    """strings.json is Engels, zoals Home Assistant het verwacht en omdat Engels
+    de standaard is (sinds v0.4.0); en.json is er een kopie van."""
+    assert _laad(VERTALINGEN / "en.json") == _laad(STRINGS)
 
 
 def test_vertaalsleutels_zijn_kleine_letters():

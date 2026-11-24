@@ -70,14 +70,28 @@ def buiten_venster(route: str, nu: datetime, volgende: datetime | None) -> dict[
         "status": "buiten_venster",
         "volgend_venster": _iso(volgende),
         "volgend_venster_tekst": dag_tekst(volgende, nu) if volgende else None,
+        # dezelfde informatie zonder taal, voor de kaart: hoe laat, hoeveel
+        # dagen vooruit (0 is vandaag) en welke weekdag (0 is maandag)
+        "volgend_venster_hhmm": hhmm(volgende) if volgende else None,
+        "volgend_venster_dagen": (volgende.date() - nu.date()).days if volgende else None,
+        "volgend_venster_weekdag": volgende.weekday() if volgende else None,
     }
 
 
-def fout(route: str, nu: datetime, plan: Dagplan | None, melding: str) -> dict[str, Any]:
+def fout(
+    route: str,
+    nu: datetime,
+    plan: Dagplan | None,
+    melding: str,
+    code: str = "",
+    param: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Binnen het venster, maar TomTom gaf geen bruikbaar antwoord.
 
     Geen getallen van de vorige ronde: de melding is het antwoord. Op een
-    telefoon is er geen logboek, dus de kaart toont deze tekst.
+    telefoon is er geen logboek, dus de kaart toont hem. `fout` is de
+    Nederlandse tekst uit het logboek; `fout_code` en `fout_param` laten de
+    kaart dezelfde melding in de gekozen taal zeggen (zie tomtom.FOUTCODES).
     """
     return {
         **basis(route, nu),
@@ -86,6 +100,8 @@ def fout(route: str, nu: datetime, plan: Dagplan | None, melding: str) -> dict[s
         "venster_van": hhmm(plan.van) if plan else None,
         "venster_tot": hhmm(plan.tot) if plan else None,
         "fout": melding,
+        "fout_code": code or None,
+        "fout_param": dict(param or {}),
     }
 
 
@@ -102,6 +118,7 @@ def _alternatief(route: dict[str, Any], snelste_s: int) -> dict[str, Any]:
 def _file(f: dict[str, Any]) -> dict[str, Any]:
     return {
         "soort": f.get("soort"),
+        "categorie": f.get("categorie"),
         "weg": f.get("weg"),
         "vertraging_min": _min(f.get("vertraging_s")),
         "snelheid_kmh": f.get("snelheid_kmh"),
@@ -176,6 +193,8 @@ def berekend(
         ],
         "waze_url": waze[0] if waze else None,
         "fout": None,
+        "fout_code": None,
+        "fout_param": {},
     }
 
 

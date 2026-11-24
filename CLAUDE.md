@@ -19,13 +19,19 @@ sleutel).
 
 Dezelfde als in cycling-next-race en Stars:
 
-- **Alle communicatie en codecommentaar in het Nederlands.**
+- **Communicatie met de eigenaar, codecommentaar, CLAUDE.md en de
+  ontwikkelaarsdocs (tests/, tools/) in het Nederlands. Alles wat een
+  gebruiker leest in het Engels**: README, `docs/`, CHANGELOG (dus de
+  release-notes) en `strings.json`. De kaart spreekt Engels (standaard) of
+  Nederlands, via de kaartoptie `language`. Besloten door de eigenaar op 24
+  november 2026: "De documentatie moet eigenlijk in het engels, op de kaart
+  kan je dan nog kiezen voor en of nl. Maar en moet de standaard zijn."
 - **Nooit data verzinnen.** Ontbreekt een bron, laat het veld leeg en laat
   de kaart het weglaten. Geen geschatte vertrektijd als TomTom er geen gaf,
   geen geraden weg bij een file, geen reistijd van een vorig venster.
-- **Benoem onzekerheid expliciet.** De README heeft "Hoe nauwkeurig is
-  het?" en "Wat niet getest is"; wat je aan de rekenkant verandert hoort
-  daar terug te komen.
+- **Benoem onzekerheid expliciet.** `docs/reliability.md` heeft "How
+  accurate is it?" en "What has not been tested"; wat je aan de rekenkant
+  verandert hoort daar terug te komen.
 - **Elke wijziging aan de integratie hoogt het versienummer op**, in
   dezelfde commit, op drie plekken die gelijk blijven: `version` in
   `manifest.json`, `VERSION` in `const.py` en `VERSIE` bovenin de kaart.
@@ -48,9 +54,11 @@ Dezelfde als in cycling-next-race en Stars:
   release al, dan trekt dezelfde workflow de notes gelijk met de changelog:
   een tikfout herstel je in `CHANGELOG.md` van de huidige versie en push je;
   de releasepagina hoef je niet te bewerken (en kan hier ook niet).
-- **Schrijf de changelog voor de gebruiker**, in gewone taal: wat verandert er
-  voor hem, niet welke functie je aanpaste. Heeft een eerdere versie iets
-  onjuists beweerd, zet dat er dan bij onder "Let op" (zie 0.1.2). Alleen
+- **Schrijf de changelog voor de gebruiker**, in gewone Engelse taal: wat
+  verandert er voor hem, niet welke functie je aanpaste. Kopjes: `Added`,
+  `Improved`, `Fixed`, `Heads-up` (`tools/release_notes.py` kent alleen die).
+  Heeft een eerdere versie iets onjuists beweerd, zet dat er dan bij onder
+  "Heads-up" (zie 0.1.2). Alleen
   README, docs of tests aangepast: geen nieuwe versie en geen nieuwe sectie.
 - **Een afgeronde wijziging mag meteen live.** Staande toestemming van de
   eigenaar, 17 november 2026, op de vraag "rechtstreeks naar main en taggen,
@@ -152,8 +160,22 @@ tools/maak_afbeeldingen.cjs   tekent docs/img/*.png met de echte kaart (Playwrig
   `lees_opties` in `coordinator.py`, `strings.json` plus elke vertaling, en
   de tabel in de README. `tests/test_repo.py` faalt als er één achterblijft.
 - Een kaartoptie toevoegen raakt: `normaliseer`, `VELDEN`, het
-  terugvalformulier in de editor, de optietabel in de README.
-  `tests/test_kaart.py` faalt als er één achterblijft.
+  terugvalformulier in de editor, de optietabel in de README, en `l_<naam>`
+  en `u_<naam>` in `TEKST` voor beide talen. `tests/test_kaart.py` en
+  `tests/kaart.test.mjs` falen als er één achterblijft.
+- **Tekst op de kaart staat alleen in `TEKST`** (`en` en `nl`), en komt er
+  via `t(taal, sleutel, waarden)` uit. Beide talen hebben dezelfde sleutels
+  en dezelfde `{invulplekken}`; `kaart.test.mjs` bewaakt dat en zoekt
+  Nederlandse woorden op de Engelse kaart.
+- **Wat de sensor als tekst zet, is Nederlands** (`fout`,
+  `volgend_venster_tekst`, `files[].soort`) en blijft staan voor wie het in
+  een automatisering gebruikt. De kaart leest de taalloze velden ernaast:
+  `fout_code` + `fout_param` (codes in `tomtom.FOUTCODES`; elke code heeft
+  een zin in `TEKST` als `fout_<code>`), `volgend_venster_hhmm/_dagen/_weekdag`
+  en `files[].categorie` (TomTom's `simpleCategory`). Een nieuwe foutcode
+  raakt: de `raise`, `FOUTCODES` en `TEKST`; `test_tomtom.py` en
+  `kaart.test.mjs` falen anders. Zonder code toont de kaart `fout` zoals hij
+  is (een oudere integratie).
 - Een attribuut toevoegen: in `uitvoer.py`, daarna bewust
   `python3 tests/maak_sensor_fixture.py`. De kaart leest attributen altijd
   als `a.<naam>`; zo controleert `test_kaart.py` dat hij niets leest wat
@@ -252,21 +274,23 @@ Bubble Card als voorbeeld van hoe het eruit hoort te zien. Daarom:
 - **De README is het visitekaartje en blijft kort**: banner, één zin, badges,
   de HACS-knop, een inhoudsopgave, de stappen, de kaartopties, en
   veelgestelde vragen in `<details>`. De lange uitleg staat in `docs/`
-  (`tomtom-sleutel.md`, `waarom-tomtom.md`, `betrouwbaarheid.md`). Verplaats
+  (`tomtom-key.md`, `why-tomtom.md`, `reliability.md`; tot v0.3.0 Nederlands
+  en met Nederlandse namen). Verplaats
   uitleg naar docs in plaats van de README te laten groeien.
 - **Alle links en afbeeldingen zijn volledige adressen naar `main`**
   (`https://github.com/vossov/commute-time/blob/main/…`, `raw.githubusercontent.com`).
   Relatieve paden werken in HACS vaak niet. `tests/test_readme.py` controleert
   dat elk adres naar iets wijst dat er is, dat elk `#anker` een kop is, en dat
   elke `##`-kop in de inhoudsopgave staat.
-- De kop `### Opties van de kaart` en de tabel eronder moeten blijven staan:
-  `tests/test_kaart.py` vergelijkt hem met de editor.
+- De kop `### Card options` en de tabel eronder moeten blijven staan:
+  `tests/test_kaart.py` vergelijkt hem met de editor. `## Contents` is de
+  inhoudsopgave die `tests/test_readme.py` leest.
 - **De afbeeldingen zijn geen schermafbeeldingen uit Home Assistant.** Ze zijn
   met `node tools/maak_afbeeldingen.cjs` getekend in Chromium, met de echte
   kaart en voorbeeldgegevens, en de README zegt dat erbij. Hou de voorbeeld-
   getallen onderling kloppend (33 + 8 min vertraging = 41 min, vertrek 07:34
   geeft aankomst 08:15): de eerste versie toonde "nu 41 min, gebruikelijk
-  3 min" naast elkaar. Maak ze opnieuw als de kaart er anders uitziet. Echte
+  3 min" naast elkaar. Ze tonen de kaart in het Engels, de standaard. Maak ze opnieuw als de kaart er anders uitziet. Echte
   schermafbeeldingen van de eigenaar zijn beter, zodra die er zijn.
 
 ## Bronnen
@@ -277,8 +301,8 @@ Bubble Card als voorbeeld van hoe het eruit hoort te zien. Daarom:
 | adres | `api.tomtom.com/search/2/geocode/{adres}.json` | documentatie, 16-11-2026 |
 | Waze openen | `waze.com/ul?ll=…&navigate=yes` | developers.google.com/waze/deeplinks, 16-11-2026 |
 
-**Rechten van de sleutel: het minimum is níét vastgesteld.** Op 16 november
-2026 beweerde de README dat alleen de Routing API en de Search API nodig
+**Rechten van de sleutel: het minimum is níét vastgesteld** (de uitleg voor
+gebruikers staat in `docs/tomtom-key.md`). Op 16 november 2026 beweerde de README dat alleen de Routing API en de Search API nodig
 waren (klassiek, niet Orbis). Bij het eerste echte gebruik, 17 november,
 bleken die twee te weinig en zette de eigenaar alle producten aan. Welk
 product ontbrak is niet bekend: de productnamen in het portaal staan achter

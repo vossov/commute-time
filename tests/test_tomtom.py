@@ -255,3 +255,38 @@ def test_geweigerd_en_te_vaak_zijn_ook_gewone_fouten(tomtom):
 ])
 def test_bewaartijd_uit_cache_control(tomtom, kop, verwacht):
     assert tomtom.bewaartijd_s(kop) == verwacht
+
+
+# ── foutcodes voor de kaart ─────────────────────────────────────────
+
+def test_een_fout_draagt_een_code_voor_de_kaart(tomtom):
+    """De kaart zegt een fout in de gekozen taal; daarvoor heeft hij de code
+    en de parameters nodig, niet de Nederlandse zin."""
+    gevallen = [
+        ((403, "", "routing"), "geweigerd", {"dienst": "routing"}),
+        ((429, "", ""), "te_vaak", {}),
+        ((400, "", ""), "geen_route", {}),
+        ((500, "", ""), "status", {"status": 500}),
+        ((200, "geen json", ""), "onverwacht", {}),
+        ((200, "[]", ""), "onverwacht", {}),
+    ]
+    for (status, tekst, dienst), code, param in gevallen:
+        with pytest.raises(tomtom.TomTomFout) as fout:
+            tomtom.verwerk_antwoord(status, tekst, dienst=dienst)
+        assert fout.value.code == code, status
+        assert fout.value.param == param, status
+        assert code in tomtom.FOUTCODES
+
+
+def test_elke_code_in_de_bron_staat_in_foutcodes(tomtom):
+    """Een code die niet in FOUTCODES staat, heeft op de kaart geen zin."""
+    import re
+    map_ = FIXTURES.parent.parent / "custom_components" / "commute_time"
+    bron = "".join((map_ / n).read_text(encoding="utf-8") for n in ("tomtom.py", "adressen.py", "coordinator.py"))
+    # de tweede tekst in een raise is de code: raise X("…", "code", …)
+    codes = set(re.findall(r'raise \w+\(\s*(?:f?"[^"]*"|\w+[^,]*?),\s*"([a-z_]+)"', bron))
+    # over meerdere regels: de code staat dan alleen op een regel
+    codes |= set(re.findall(r'^\s+"([a-z_]+)",$', bron, flags=re.M)) & set(tomtom.FOUTCODES)
+    codes.add("geweigerd")  # gaat via de constructor van TomTomGeweigerd
+    assert codes, "geen codes gevonden; is de schrijfwijze veranderd?"
+    assert codes == set(tomtom.FOUTCODES), codes ^ set(tomtom.FOUTCODES)

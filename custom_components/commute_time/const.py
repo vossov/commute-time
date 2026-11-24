@@ -12,7 +12,7 @@ NAME = "Commute Time"
 # Gelijk aan "version" in manifest.json en aan VERSIE bovenin de kaart.
 # Hangt achter de kaart-URL, zodat de browser na een update de nieuwe kaart
 # ophaalt. tests/test_repo.py bewaakt dat de drie niet uiteenlopen.
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 # De meegeleverde Lovelace-kaart, door de integratie zelf geregistreerd.
 KAART_BESTAND = "commute-time-card.js"

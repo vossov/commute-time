@@ -28,7 +28,7 @@ KOP = re.compile(r"^## \[(\d+\.\d+\.\d+)\] — (\d{4}-\d{2}-\d{2})[ \t]*$", re.M
 ONDERDEEL = re.compile(r"^### (.+?)[ \t]*$", re.M)
 
 # de kopjes die in een sectie mogen staan, in vaste volgorde
-ONDERDELEN = ("Nieuw", "Verbeterd", "Opgelost", "Let op")
+ONDERDELEN = ("Added", "Improved", "Fixed", "Heads-up")
 
 
 class Sectie(NamedTuple):
@@ -75,9 +75,9 @@ def release_tekst(s: Sectie) -> str:
     return (
         s.tekst.strip()
         + "\n\n---\n\n"
-        + "**Bijwerken:** open HACS, kies *Commute Time* en dan *Bijwerken*; "
-        + "herstart daarna Home Assistant.\n"
-        + f"**Alle versies:** [CHANGELOG.md](https://github.com/{REPO}/blob/main/CHANGELOG.md)\n"
+        + "**Updating:** open HACS, pick *Commute Time* and then *Update*; "
+        + "restart Home Assistant afterwards.\n"
+        + f"**All versions:** [CHANGELOG.md](https://github.com/{REPO}/blob/main/CHANGELOG.md)\n"
     )
 
 
@@ -97,7 +97,7 @@ def fouten(tekst: str, versie: str) -> list[str]:
         uit.append(f"[{versie}] mist de samenvatting: een regel die met “> ” begint, direct onder de kop")
     onderdelen = list(ONDERDEEL.finditer(s.tekst))
     if not onderdelen:
-        uit.append(f"[{versie}] heeft geen kopje (### Nieuw, Verbeterd, Opgelost of Let op)")
+        uit.append(f"[{versie}] heeft geen kopje (### Added, Improved, Fixed or Heads-up)")
     gezien: list[str] = []
     for i, kop in enumerate(onderdelen):
         naam = kop.group(1)

@@ -59,7 +59,7 @@
           "start": "An address, a coordinate, or an entity such as zone.home or person.name.",
           "via": "At most three, one per line.",
           "destination": "As complete an address as possible, including the town.",
-          "margin_minutes": "How many minutes before the arrival time you want to be there: parking, walking in. Always shown on the card.",
+          "margin_minutes": "How many minutes before the arrival time you want to be there: parking, walking in. Shown on the card only with the card option target.",
           "stop_minutes": "How long you stand still at each stop. TomTom does not count it; the departure moves that much earlier.",
           "travel_mode": "What TomTom calculates the route for.",
           "avoid": "A preference, not a ban: TomTom uses them if there is no other way.",
